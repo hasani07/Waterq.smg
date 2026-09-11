@@ -15,6 +15,7 @@ export type DevicePublic = {
   longitude: number | null;
   firmware_version: string | null;
   send_interval_minutes: number;
+  serial_monitor_enabled: boolean;
   created_at: string;
 };
 
