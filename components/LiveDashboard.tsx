@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { supabase, DevicePublic, SensorReading, DeviceStatus } from "@/lib/supabase";
 import { formatUptime, formatDateTime } from "@/lib/format";
 import SensorHistoryChart from "./SensorHistoryChart";
+import AIRecommendationPanel from "./AIRecommendationPanel";
 
 // Leaflet butuh `window`, jadi wajib di-load client-only (ssr: false)
 const DeviceMap = dynamic(() => import("./DeviceMap"), {
@@ -170,6 +171,9 @@ export default function LiveDashboard({ devices }: { devices: DevicePublic[] }) 
 
       {/* Grafik historis */}
       <SensorHistoryChart devices={devices} primaryDeviceId={selectedDeviceId} />
+
+      {/* Rekomendasi AI */}
+      <AIRecommendationPanel deviceId={selectedDeviceId} />
     </div>
   );
 }
