@@ -5,6 +5,9 @@ import PinGate from "@/components/PinGate";
 import ThresholdPanel from "@/components/ThresholdPanel";
 import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
 import IntervalPanel from "@/components/IntervalPanel";
+import WifiPanel from "@/components/WifiPanel";
+import OtaPanel from "@/components/OtaPanel";
+import CalibrationPanel from "@/components/CalibrationPanel";
 
 export default function SettingsPage() {
   return (
@@ -16,7 +19,7 @@ export default function SettingsPage() {
           </Link>
           <h1 className="mt-2 font-display text-3xl font-bold text-ink">Panel Setting</h1>
           <p className="mt-2 font-body text-sm text-ink/60">
-            Threshold, notifikasi, dan interval pengiriman data. Dilindungi PIN.
+            Threshold, notifikasi, interval, WiFi, OTA, dan kalibrasi. Dilindungi PIN.
           </p>
         </div>
       </section>
@@ -29,6 +32,9 @@ export default function SettingsPage() {
                 <ThresholdPanel token={token} />
                 <NotificationPreferencesPanel token={token} />
                 <IntervalPanel token={token} />
+                <WifiPanel token={token} />
+                <OtaPanel token={token} />
+                <CalibrationPanel token={token} />
               </div>
             )}
           </PinGate>
