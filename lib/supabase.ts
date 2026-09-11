@@ -32,3 +32,10 @@ export type SensorReading = {
   battery_percent: number | null;
   recorded_at: string;
 };
+
+export type DeviceStatus = {
+  device_id: string;
+  is_online: boolean;
+  last_seen_at: string;
+  uptime_seconds: number | null;
+};
