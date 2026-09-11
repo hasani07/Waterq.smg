@@ -1,5 +1,6 @@
 import { supabase, DevicePublic } from "@/lib/supabase";
 import LiveDashboard from "@/components/LiveDashboard";
+import Link from "next/link";
 
 export const revalidate = 0; // selalu ambil data terbaru, jangan di-cache statis
 
@@ -16,10 +17,20 @@ export default async function Home() {
       {/* Hero */}
       <section className="border-b border-line px-6 py-14 md:px-12">
         <div className="mx-auto max-w-5xl">
-          <p className="font-body text-sm text-teal">Daerah Aliran Sungai · Semarang</p>
-          <h1 className="mt-2 font-display text-4xl font-bold leading-tight text-ink md:text-5xl">
-            WaterQ Semarang
-          </h1>
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-body text-sm text-teal">Daerah Aliran Sungai · Semarang</p>
+              <h1 className="mt-2 font-display text-4xl font-bold leading-tight text-ink md:text-5xl">
+                WaterQ Semarang
+              </h1>
+            </div>
+            <Link
+              href="/settings"
+              className="border border-line px-4 py-2 font-body text-xs text-ink/70 transition-colors hover:border-teal hover:text-teal"
+            >
+              Panel Setting
+            </Link>
+          </div>
           <p className="mt-4 max-w-xl font-body text-base text-ink/70">
             Pemantauan kualitas air dan ketinggian sungai secara real-time dari{" "}
             {devices.length} stasiun terpasang di sepanjang DAS Semarang.
