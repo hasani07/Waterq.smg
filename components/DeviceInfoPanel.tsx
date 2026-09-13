@@ -72,7 +72,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
 
   if (devices.length === 0) {
     return (
-      <div className="border border-line bg-white/60 px-6 py-6">
+      <div className="glass-card px-6 py-6">
         <p className="font-display text-lg font-bold text-ink">Identitas & Lokasi Device</p>
         <p className="mt-2 font-body text-sm text-ink/50">Belum ada device terdaftar.</p>
       </div>
@@ -80,7 +80,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
   }
 
   return (
-    <div className="border border-line bg-white/60 px-6 py-6">
+    <div className="glass-card px-6 py-6">
       <p className="font-display text-lg font-bold text-ink">Identitas & Lokasi Device</p>
       <p className="mt-1 font-body text-xs text-ink/50">
         Nomor SIM, provider, tanggal isi ulang pulsa terakhir, dan koordinat lokasi.
