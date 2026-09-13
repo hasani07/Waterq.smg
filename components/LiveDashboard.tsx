@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Wifi, WifiOff, Clock, Radio } from "lucide-react";
+import { Wifi, WifiOff, Clock, Radio, MapPin } from "lucide-react";
 import { supabase, DevicePublic, SensorReading, DeviceStatus } from "@/lib/supabase";
 import { formatUptime, formatDateTime } from "@/lib/format";
 import SensorHistoryChart from "./SensorHistoryChart";
@@ -20,9 +20,17 @@ const DeviceMap = dynamic(() => import("./DeviceMap"), {
   ),
 });
 
-export default function LiveDashboard({ devices }: { devices: DevicePublic[] }) {
+export default function LiveDashboard({
+  devices,
+  initialDeviceId,
+}: {
+  devices: DevicePublic[];
+  initialDeviceId?: string | null;
+}) {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(
-    devices[0]?.id ?? null,
+    (initialDeviceId && devices.some((d) => d.id === initialDeviceId)
+      ? initialDeviceId
+      : devices[0]?.id) ?? null,
   );
   const [reading, setReading] = useState<SensorReading | null>(null);
   const [status, setStatus] = useState<DeviceStatus | null>(null);
@@ -97,37 +105,56 @@ export default function LiveDashboard({ devices }: { devices: DevicePublic[] }) 
       : null;
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Panel pembacaan sensor - device terpilih */}
-      <GlassCard>
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/50 pb-4">
-          <div>
-            <p className="font-display text-xl font-bold text-ink">
-              {selectedDevice?.name ?? "—"}
-            </p>
-            <p className="font-body text-xs text-ink/50">{selectedDevice?.device_code}</p>
+    <div className="flex flex-col gap-6">
+      {/* Bar ringkasan device terpilih */}
+      <GlassCard padding="px-6 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10">
+              <MapPin size={18} className="text-teal" />
+            </span>
+            <div>
+              <p className="font-display text-base font-bold text-ink">
+                {selectedDevice?.device_code} — {selectedDevice?.name}
+              </p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-3">
+                <span
+                  className={`flex items-center gap-1 font-body text-xs ${
+                    status?.is_online ? "text-teal" : "text-alert"
+                  }`}
+                >
+                  {status?.is_online ? <Wifi size={12} /> : <WifiOff size={12} />}
+                  {status?.is_online ? "Online" : "Offline"}
+                </span>
+                <span className="flex items-center gap-1 font-body text-xs text-ink/50">
+                  <Radio size={12} />
+                  {formatDateTime(reading?.recorded_at)}
+                </span>
+                <span className="flex items-center gap-1 font-body text-xs text-ink/50">
+                  <Clock size={12} />
+                  Uptime {formatUptime(uptimeSeconds)}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`glass-pill flex items-center gap-1.5 px-3 py-1.5 font-body text-xs ${
-                status?.is_online ? "text-teal" : "text-alert"
-              }`}
-            >
-              {status?.is_online ? <Wifi size={13} /> : <WifiOff size={13} />}
-              {status?.is_online ? "Online" : "Offline"}
-            </span>
-            <span className="glass-pill flex items-center gap-1.5 px-3 py-1.5 font-body text-xs text-ink/60">
-              <Radio size={13} />
-              {formatDateTime(reading?.recorded_at)}
-            </span>
-            <span className="glass-pill flex items-center gap-1.5 px-3 py-1.5 font-body text-xs text-ink/60">
-              <Clock size={13} />
-              {formatUptime(uptimeSeconds)}
-            </span>
-          </div>
-        </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          <select
+            value={selectedDeviceId ?? ""}
+            onChange={(e) => setSelectedDeviceId(e.target.value)}
+            className="glass-pill bg-white/70 px-4 py-2 font-body text-sm text-ink outline-none"
+          >
+            {devices.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.device_code} — {d.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </GlassCard>
+
+      {/* Kartu-kartu sensor */}
+      <GlassCard>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           <SensorTile sensorKey="ph" value={reading?.ph} unit="" />
           <SensorTile sensorKey="do" value={reading?.do_mg_l} unit="mg/L" />
           <SensorTile sensorKey="turbidity" value={reading?.turbidity_ntu} unit="NTU" />
@@ -143,33 +170,23 @@ export default function LiveDashboard({ devices }: { devices: DevicePublic[] }) 
         </div>
       </GlassCard>
 
-      {/* Peta + dropdown */}
-      <GlassCard>
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4">
-          <p className="font-display text-lg font-bold text-ink">Peta Stasiun</p>
-          <select
-            value={selectedDeviceId ?? ""}
-            onChange={(e) => setSelectedDeviceId(e.target.value)}
-            className="glass-pill bg-white/70 px-4 py-2 font-body text-sm text-ink outline-none"
-          >
-            {devices.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.device_code} — {d.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="overflow-hidden rounded-2xl">
-          <DeviceMap
-            devices={devices}
-            selectedDeviceId={selectedDeviceId}
-            onSelect={setSelectedDeviceId}
-          />
-        </div>
-      </GlassCard>
+      {/* Peta + Grafik sejajar */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <GlassCard>
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4">
+            <p className="font-display text-lg font-bold text-ink">Peta Stasiun</p>
+          </div>
+          <div className="overflow-hidden rounded-2xl">
+            <DeviceMap
+              devices={devices}
+              selectedDeviceId={selectedDeviceId}
+              onSelect={setSelectedDeviceId}
+            />
+          </div>
+        </GlassCard>
 
-      {/* Grafik historis */}
-      <SensorHistoryChart devices={devices} primaryDeviceId={selectedDeviceId} />
+        <SensorHistoryChart devices={devices} primaryDeviceId={selectedDeviceId} />
+      </div>
 
       {/* Rekomendasi AI */}
       <AIRecommendationPanel deviceId={selectedDeviceId} />
