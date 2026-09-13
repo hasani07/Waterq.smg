@@ -133,7 +133,7 @@ export default function SensorHistoryChart({
     .filter(Boolean) as string[];
 
   return (
-    <div className="border border-line bg-white/60 px-6 py-6">
+    <div className="glass-card px-6 py-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="font-display text-lg font-bold text-ink">Grafik Historis</p>
