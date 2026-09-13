@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, Menu } from "lucide-react";
 import { supabase, DevicePublic } from "@/lib/supabase";
 import ThemeToggle from "./ThemeToggle";
 
-export default function TopBar() {
+export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [devices, setDevices] = useState<DevicePublic[]>([]);
@@ -46,8 +46,16 @@ export default function TopBar() {
   );
 
   return (
-    <div className="glass-card mb-6 flex items-center gap-4 px-5 py-3">
-      <div ref={wrapperRef} className="relative flex-1">
+    <div className="glass-card mb-6 flex items-center gap-3 px-4 py-3 md:gap-4 md:px-5">
+      <button
+        onClick={onMenuClick}
+        className="glass-pill flex h-9 w-9 shrink-0 items-center justify-center text-ink/70 lg:hidden"
+        aria-label="Buka menu"
+      >
+        <Menu size={17} />
+      </button>
+
+      <div ref={wrapperRef} className="relative min-w-0 flex-1">
         <Search
           size={16}
           className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40"
