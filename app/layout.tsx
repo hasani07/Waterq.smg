@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import Sidebar from "@/components/Sidebar";
+import TopBar from "@/components/TopBar";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -19,11 +21,33 @@ export const metadata: Metadata = {
   description: "Dashboard pemantauan kualitas air sungai di Semarang secara real-time.",
 };
 
+// Script kecil ini jalan SEBELUM React hydrate, biar gak ada "kedipan" tema
+// (misal user pilih dark mode, tapi pas reload sempat keliatan putih sekilas).
+const themeInitScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('waterq-theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var isDark = stored ? stored === 'dark' : prefersDark;
+    if (isDark) document.documentElement.classList.add('dark');
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`${spaceGrotesk.variable} ${ibmPlex.variable} font-body`}>
-        {children}
+        <div className="flex gap-4 p-4">
+          <Sidebar />
+          <div className="min-w-0 flex-1">
+            <TopBar />
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );

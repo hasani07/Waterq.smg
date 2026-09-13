@@ -6,56 +6,102 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ===== Warna tema — Light (default) ===== */
+:root {
+  --color-bg: 238 243 240;
+  --color-ink: 18 35 32;
+  --color-teal: 20 85 92;
+  --color-teal-light: 44 122 130;
+  --color-teal-dark: 13 58 63;
+  --color-sediment: 193 121 59;
+  --color-alert: 180 68 46;
+  --color-line: 217 224 220;
+
+  --glass-bg: 255 255 255;
+  --glass-alpha-card: 0.55;
+  --glass-alpha-sm: 0.5;
+  --glass-alpha-pill: 0.5;
+  --glass-border-alpha: 0.6;
+  --glass-shadow-rgb: 20 85 92;
+  --glass-shadow-alpha: 0.08;
+
+  --page-gradient-1: rgba(20, 85, 92, 0.16);
+  --page-gradient-2: rgba(193, 121, 59, 0.14);
+  --page-gradient-3: rgba(44, 122, 130, 0.14);
+  --page-gradient-4: rgba(180, 68, 46, 0.08);
+}
+
+/* ===== Warna tema — Dark ===== */
+.dark {
+  --color-bg: 8 14 20;
+  --color-ink: 230 240 237;
+  --color-teal: 62 168 178;
+  --color-teal-light: 90 190 200;
+  --color-teal-dark: 40 120 130;
+  --color-sediment: 224 154 96;
+  --color-alert: 226 118 100;
+  --color-line: 38 55 60;
+
+  --glass-bg: 18 30 38;
+  --glass-alpha-card: 0.6;
+  --glass-alpha-sm: 0.55;
+  --glass-alpha-pill: 0.5;
+  --glass-border-alpha: 0.08;
+  --glass-shadow-rgb: 0 0 0;
+  --glass-shadow-alpha: 0.35;
+
+  --page-gradient-1: rgba(62, 168, 178, 0.18);
+  --page-gradient-2: rgba(224, 154, 96, 0.12);
+  --page-gradient-3: rgba(90, 190, 200, 0.14);
+  --page-gradient-4: rgba(226, 118, 100, 0.08);
+}
+
 body {
-  color: #122320;
-  background-color: #EEF3F0;
+  color: rgb(var(--color-ink));
+  background-color: rgb(var(--color-bg));
   background-image:
-    radial-gradient(circle at 8% 8%, rgba(20, 85, 92, 0.16) 0%, transparent 45%),
-    radial-gradient(circle at 92% 15%, rgba(193, 121, 59, 0.14) 0%, transparent 40%),
-    radial-gradient(circle at 25% 85%, rgba(44, 122, 130, 0.14) 0%, transparent 45%),
-    radial-gradient(circle at 85% 90%, rgba(180, 68, 46, 0.08) 0%, transparent 40%);
+    radial-gradient(circle at 8% 8%, var(--page-gradient-1) 0%, transparent 45%),
+    radial-gradient(circle at 92% 15%, var(--page-gradient-2) 0%, transparent 40%),
+    radial-gradient(circle at 25% 85%, var(--page-gradient-3) 0%, transparent 45%),
+    radial-gradient(circle at 85% 90%, var(--page-gradient-4) 0%, transparent 40%);
   background-attachment: fixed;
   background-size: 100% 100%;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
-  background-color: #14555C;
-  color: #F3F6F4;
+  background-color: rgb(var(--color-teal));
+  color: rgb(var(--color-bg));
 }
 
-/* Neo-Glassmorphism: dipakai lewat class .glass-card di seluruh dashboard */
-/* Dibungkus @layer components biar urutannya BENAR di cascade CSS -- tanpa ini,
-   utility Tailwind seperti bg-teal/90 bisa ketimpa background dari class custom ini,
-   bikin tombol keliatan putih/kosong padahal seharusnya solid teal. */
 @layer components {
   .glass-card {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgb(var(--glass-bg) / var(--glass-alpha-card));
     backdrop-filter: blur(20px) saturate(150%);
     -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgb(255 255 255 / var(--glass-border-alpha));
     box-shadow:
-      0 8px 32px rgba(20, 85, 92, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      0 8px 32px rgb(var(--glass-shadow-rgb) / var(--glass-shadow-alpha)),
+      inset 0 1px 0 rgb(255 255 255 / var(--glass-border-alpha));
     border-radius: 1.25rem;
   }
 
   .glass-card-sm {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgb(var(--glass-bg) / var(--glass-alpha-sm));
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgb(255 255 255 / var(--glass-border-alpha));
     box-shadow:
-      0 4px 16px rgba(20, 85, 92, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      0 4px 16px rgb(var(--glass-shadow-rgb) / var(--glass-shadow-alpha));
     border-radius: 1rem;
   }
 
   .glass-pill {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgb(var(--glass-bg) / var(--glass-alpha-pill));
     backdrop-filter: blur(12px) saturate(140%);
     -webkit-backdrop-filter: blur(12px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgb(255 255 255 / var(--glass-border-alpha));
     border-radius: 999px;
   }
 }
