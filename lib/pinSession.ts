@@ -79,7 +79,6 @@ export async function callProtectedFunction<T = unknown>(
     let message = error.message ?? "Terjadi kesalahan";
     let status: number | undefined;
     try {
-      // @ts-expect-error -- FunctionsHttpError punya .context berisi Response asli, tidak selalu ada di tipe
       const ctx = error.context as Response | undefined;
       status = ctx?.status;
       if (ctx) {
