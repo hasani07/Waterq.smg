@@ -170,23 +170,22 @@ export default function LiveDashboard({
         </div>
       </GlassCard>
 
-      {/* Peta + Grafik sejajar */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <GlassCard>
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4">
-            <p className="font-display text-lg font-bold text-ink">Peta Stasiun</p>
-          </div>
-          <div className="overflow-hidden rounded-2xl">
-            <DeviceMap
-              devices={devices}
-              selectedDeviceId={selectedDeviceId}
-              onSelect={setSelectedDeviceId}
-            />
-          </div>
-        </GlassCard>
+      {/* Peta */}
+      <GlassCard>
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4">
+          <p className="font-display text-lg font-bold text-ink">Peta Stasiun</p>
+        </div>
+        <div className="overflow-hidden rounded-2xl">
+          <DeviceMap
+            devices={devices}
+            selectedDeviceId={selectedDeviceId}
+            onSelect={setSelectedDeviceId}
+          />
+        </div>
+      </GlassCard>
 
-        <SensorHistoryChart devices={devices} primaryDeviceId={selectedDeviceId} />
-      </div>
+      {/* Grafik historis selebar penuh */}
+      <SensorHistoryChart devices={devices} primaryDeviceId={selectedDeviceId} />
 
       {/* Rekomendasi AI */}
       <AIRecommendationPanel deviceId={selectedDeviceId} />
