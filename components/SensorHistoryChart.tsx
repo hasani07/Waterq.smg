@@ -1,194 +1,317 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { Wifi, WifiOff, Clock, Radio, MapPin } from "lucide-react";
-import { supabase, DevicePublic, SensorReading, DeviceStatus } from "@/lib/supabase";
-import { formatUptime, formatDateTime } from "@/lib/format";
-import SensorHistoryChart from "./SensorHistoryChart";
-import AIRecommendationPanel from "./AIRecommendationPanel";
-import GlassCard from "./GlassCard";
-import SensorTile from "./SensorTile";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { supabase, DevicePublic } from "@/lib/supabase";
 
-// Leaflet butuh `window`, jadi wajib di-load client-only (ssr: false)
-const DeviceMap = dynamic(() => import("./DeviceMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="glass-card-sm flex h-[380px] items-center justify-center font-body text-sm text-ink/40">
-      Memuat peta...
+const SENSOR_OPTIONS = [
+  { key: "ph", label: "pH" },
+  { key: "do_mg_l", label: "DO (mg/L)" },
+  { key: "turbidity_ntu", label: "Turbidity (NTU)" },
+  { key: "ec_us_cm", label: "EC (µS/cm)" },
+  { key: "tds_ppm", label: "TDS (ppm)" },
+  { key: "rainfall_mm", label: "Rainfall (mm)" },
+  { key: "water_level_raw_distance_cm", label: "Water Level (raw, cm)" },
+  { key: "battery_percent", label: "Baterai (%)" },
+] as const;
+
+type SensorKey = (typeof SENSOR_OPTIONS)[number]["key"];
+type RangeKey = "yesterday" | "7d" | "30d" | "365d" | "custom";
+
+const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
+  { key: "yesterday", label: "24 Jam Terakhir" },
+  { key: "7d", label: "7 Hari" },
+  { key: "30d", label: "1 Bulan" },
+  { key: "365d", label: "1 Tahun" },
+  { key: "custom", label: "Custom" },
+];
+
+const LINE_COLORS = ["#14555C", "#C1793B", "#B4442E", "#2C7A82", "#6B4E9B"];
+
+function rangeToDates(range: RangeKey, customFrom: string, customTo: string) {
+  const now = new Date();
+  let from: Date;
+  let to: Date = now;
+
+  switch (range) {
+    case "yesterday":
+      from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      break;
+    case "7d":
+      from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case "30d":
+      from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      break;
+    case "365d":
+      from = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      break;
+    case "custom":
+      from = customFrom ? new Date(customFrom) : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      to = customTo ? new Date(customTo) : now;
+      break;
+  }
+  return { from, to };
+}
+
+// Tooltip kustom bergaya kaca, senada dengan tema Neo-Glassmorphism
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function GlassTooltip({ active, payload, label }: any) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="glass-card-sm px-4 py-3">
+      <p className="font-body text-[11px] text-ink/50">{label}</p>
+      <div className="mt-1 flex flex-col gap-1">
+        {payload.map((p: { name: string; value: number; color: string }) => (
+          <div key={p.name} className="flex items-center gap-2 font-body text-xs">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
+            <span className="text-ink/70">{p.name}:</span>
+            <span className="font-display font-bold text-ink">{p.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
-  ),
-});
+  );
+}
 
-export default function LiveDashboard({
+export default function SensorHistoryChart({
   devices,
-  initialDeviceId,
+  primaryDeviceId,
 }: {
   devices: DevicePublic[];
-  initialDeviceId?: string | null;
+  primaryDeviceId: string | null;
 }) {
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(
-    (initialDeviceId && devices.some((d) => d.id === initialDeviceId)
-      ? initialDeviceId
-      : devices[0]?.id) ?? null,
-  );
-  const [reading, setReading] = useState<SensorReading | null>(null);
-  const [status, setStatus] = useState<DeviceStatus | null>(null);
+  const [sensorKey, setSensorKey] = useState<SensorKey>("ph");
+  const [range, setRange] = useState<RangeKey>("7d");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const selectedDevice = devices.find((d) => d.id === selectedDeviceId) ?? null;
+  const activeDeviceIds = primaryDeviceId
+    ? [primaryDeviceId, ...compareIds.filter((id) => id !== primaryDeviceId)]
+    : compareIds;
 
   useEffect(() => {
-    if (!selectedDeviceId) return;
-
-    let active = true;
-
-    async function loadInitial() {
-      const { data: readingData } = await supabase
-        .from("sensor_readings")
-        .select("*")
-        .eq("device_id", selectedDeviceId)
-        .order("recorded_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const { data: statusData } = await supabase
-        .from("device_status_log")
-        .select("*")
-        .eq("device_id", selectedDeviceId)
-        .maybeSingle();
-
-      if (active) {
-        setReading(readingData ?? null);
-        setStatus(statusData ?? null);
-      }
+    if (activeDeviceIds.length === 0) {
+      setChartData([]);
+      return;
     }
 
-    loadInitial();
+    const deviceCodeMap = new Map(devices.map((d) => [d.id, d.device_code]));
 
-    const channel = supabase
-      .channel(`sensor-readings-${selectedDeviceId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "sensor_readings",
-          filter: `device_id=eq.${selectedDeviceId}`,
-        },
-        (payload) => {
-          setReading(payload.new as SensorReading);
-        },
-      )
-      .subscribe();
+    async function fetchChartData(showLoading: boolean) {
+      if (showLoading) setLoading(true);
+      const { from, to } = rangeToDates(range, customFrom, customTo);
 
-    return () => {
-      active = false;
-      supabase.removeChannel(channel);
-    };
-  }, [selectedDeviceId]);
+      const { data, error } = await supabase
+        .from("sensor_readings")
+        .select(`device_id, recorded_at, ${sensorKey}`)
+        .in("device_id", activeDeviceIds)
+        .gte("recorded_at", from.toISOString())
+        .lte("recorded_at", to.toISOString())
+        .order("recorded_at", { ascending: true })
+        .limit(2000);
 
-  if (devices.length === 0) {
-    return (
-      <GlassCard className="border-dashed text-center" padding="px-6 py-12">
-        <p className="font-display text-lg text-ink">Belum ada stasiun terdaftar</p>
-        <p className="mt-2 font-body text-sm text-ink/60">
-          Tambahkan device lewat tabel <code className="text-teal">devices</code> di Supabase,
-          atau lewat Panel Setting begitu sudah dibuat.
-        </p>
-      </GlassCard>
-    );
-  }
+      if (error) {
+        console.error("Gagal ambil data grafik:", error.message);
+        if (showLoading) setLoading(false);
+        return;
+      }
 
-  const uptimeSeconds =
-    status?.is_online && status?.online_since
-      ? (Date.now() - new Date(status.online_since).getTime()) / 1000
-      : null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const grouped = new Map<string, any>();
+      (data ?? []).forEach((row: any) => {
+        const t = new Date(row.recorded_at).toLocaleString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        if (!grouped.has(t)) grouped.set(t, { time: t });
+        const code = deviceCodeMap.get(row.device_id) ?? row.device_id;
+        grouped.get(t)[code] = row[sensorKey];
+      });
+      setChartData(Array.from(grouped.values()));
+      if (showLoading) setLoading(false);
+    }
+
+    fetchChartData(true); // fetch pertama, tampilkan loading
+
+    // Auto-refresh tiap 30 detik biar grafik "24 Jam Terakhir" & "7 Hari" beneran
+    // nyampe ke data ter-update, bukan cuma snapshot pas terakhir klik filter.
+    const intervalId = setInterval(() => fetchChartData(false), 30000);
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sensorKey, range, customFrom, customTo, primaryDeviceId, compareIds.join(",")]);
+
+  const otherDevices = devices.filter((d) => d.id !== primaryDeviceId);
+  const activeLabels = activeDeviceIds
+    .map((id) => devices.find((d) => d.id === id)?.device_code)
+    .filter(Boolean) as string[];
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Bar ringkasan device terpilih */}
-      <GlassCard padding="px-6 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal/10">
-              <MapPin size={18} className="text-teal" />
-            </span>
-            <div>
-              <p className="font-display text-base font-bold text-ink">
-                {selectedDevice?.device_code} — {selectedDevice?.name}
-              </p>
-              <div className="mt-0.5 flex flex-wrap items-center gap-3">
-                <span
-                  className={`flex items-center gap-1 font-body text-xs ${
-                    status?.is_online ? "text-teal" : "text-alert"
-                  }`}
-                >
-                  {status?.is_online ? <Wifi size={12} /> : <WifiOff size={12} />}
-                  {status?.is_online ? "Online" : "Offline"}
-                </span>
-                <span className="flex items-center gap-1 font-body text-xs text-ink/50">
-                  <Radio size={12} />
-                  {formatDateTime(reading?.recorded_at)}
-                </span>
-                <span className="flex items-center gap-1 font-body text-xs text-ink/50">
-                  <Clock size={12} />
-                  Uptime {formatUptime(uptimeSeconds)}
-                </span>
-              </div>
-            </div>
-          </div>
+    <div className="glass-card px-6 py-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="font-display text-lg font-bold text-ink">Grafik Historis</p>
+          <p className="font-body text-xs text-ink/50">
+            Riwayat pembacaan sensor · auto-refresh tiap 30 detik
+          </p>
+        </div>
 
-          <select
-            value={selectedDeviceId ?? ""}
-            onChange={(e) => setSelectedDeviceId(e.target.value)}
-            className="glass-pill bg-ink/5 px-4 py-2 font-body text-sm text-ink outline-none"
+        <select
+          value={sensorKey}
+          onChange={(e) => setSensorKey(e.target.value as SensorKey)}
+          className="glass-pill bg-ink/5 px-4 py-2 font-body text-sm text-ink outline-none"
+        >
+          {SENSOR_OPTIONS.map((opt) => (
+            <option key={opt.key} value={opt.key}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Filter rentang waktu */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {RANGE_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => setRange(opt.key)}
+            className={`glass-pill px-4 py-1.5 font-body text-xs transition-colors ${
+              range === opt.key ? "bg-teal text-white" : "bg-ink/5 text-ink/70 hover:text-teal"
+            }`}
           >
-            {devices.map((d) => (
-              <option key={d.id} value={d.id}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {range === "custom" && (
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <label className="font-body text-xs text-ink/60">
+            Dari{" "}
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="glass-pill ml-1 bg-ink/5 px-3 py-1.5 font-body text-xs outline-none"
+            />
+          </label>
+          <label className="font-body text-xs text-ink/60">
+            Sampai{" "}
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="glass-pill ml-1 bg-ink/5 px-3 py-1.5 font-body text-xs outline-none"
+            />
+          </label>
+        </div>
+      )}
+
+      {/* Banding antar device */}
+      {otherDevices.length > 0 && (
+        <div className="mt-4 border-t border-white/50 pt-3">
+          <p className="font-body text-xs text-ink/50">Bandingkan dengan stasiun lain:</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {otherDevices.map((d) => (
+              <label
+                key={d.id}
+                className={`glass-pill flex items-center gap-1.5 px-3 py-1.5 font-body text-xs transition-colors ${
+                  compareIds.includes(d.id) ? "bg-teal/10 text-teal" : "bg-ink/5 text-ink/60"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={compareIds.includes(d.id)}
+                  onChange={(e) => {
+                    setCompareIds((prev) =>
+                      e.target.checked ? [...prev, d.id] : prev.filter((id) => id !== d.id),
+                    );
+                  }}
+                  className="accent-teal"
+                />
                 {d.device_code} — {d.name}
-              </option>
+              </label>
             ))}
-          </select>
+          </div>
         </div>
-      </GlassCard>
+      )}
 
-      {/* Kartu-kartu sensor */}
-      <GlassCard>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          <SensorTile sensorKey="ph" value={reading?.ph} unit="" />
-          <SensorTile sensorKey="do" value={reading?.do_mg_l} unit="mg/L" />
-          <SensorTile sensorKey="turbidity" value={reading?.turbidity_ntu} unit="NTU" />
-          <SensorTile sensorKey="ec" value={reading?.ec_us_cm} unit="µS/cm" />
-          <SensorTile sensorKey="tds" value={reading?.tds_ppm} unit="ppm" />
-          <SensorTile sensorKey="rainfall" value={reading?.rainfall_mm} unit="mm" />
-          <SensorTile
-            sensorKey="water_level"
-            value={reading?.water_level_raw_distance_cm}
-            unit="cm"
-          />
-          <SensorTile sensorKey="battery" value={reading?.battery_percent} unit="%" />
-        </div>
-      </GlassCard>
-
-      {/* Peta */}
-      <GlassCard>
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4">
-          <p className="font-display text-lg font-bold text-ink">Peta Stasiun</p>
-        </div>
-        <div className="overflow-hidden rounded-2xl">
-          <DeviceMap
-            devices={devices}
-            selectedDeviceId={selectedDeviceId}
-            onSelect={setSelectedDeviceId}
-          />
-        </div>
-      </GlassCard>
-
-      {/* Grafik historis selebar penuh */}
-      <SensorHistoryChart devices={devices} primaryDeviceId={selectedDeviceId} />
-
-      {/* Rekomendasi AI */}
-      <AIRecommendationPanel deviceId={selectedDeviceId} />
+      {/* Chart */}
+      <div className="mt-6">
+        {loading ? (
+          <p className="py-16 text-center font-body text-sm text-ink/40">Memuat data...</p>
+        ) : chartData.length === 0 ? (
+          <p className="py-16 text-center font-body text-sm text-ink/40">
+            Belum ada data untuk rentang waktu ini.
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={460}>
+            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+              <defs>
+                {activeLabels.map((label, idx) => (
+                  <linearGradient key={label} id={`fill-${label}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor={LINE_COLORS[idx % LINE_COLORS.length]}
+                      stopOpacity={0.35}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={LINE_COLORS[idx % LINE_COLORS.length]}
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid stroke="#14555C" strokeOpacity={0.08} vertical={false} />
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 11, fill: "#12232099" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: "#12232099" }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Tooltip content={<GlassTooltip />} />
+              {activeLabels.length > 1 && (
+                <Legend wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-ibm-plex)" }} />
+              )}
+              {activeLabels.map((label, idx) => (
+                <Area
+                  key={label}
+                  type="monotone"
+                  dataKey={label}
+                  stroke={LINE_COLORS[idx % LINE_COLORS.length]}
+                  strokeWidth={2.5}
+                  fill={`url(#fill-${label})`}
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0 }}
+                  connectNulls
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
     </div>
   );
 }
