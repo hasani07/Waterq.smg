@@ -58,7 +58,7 @@ export default async function AlertsPage() {
               const Icon = meta.icon;
               return (
                 <div key={n.id} className="flex items-start gap-3 py-3">
-                  <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/40 ${meta.color}`}>
+                  <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink/5 ${meta.color}`}>
                     <Icon size={15} />
                   </span>
                   <div className="min-w-0 flex-1">
