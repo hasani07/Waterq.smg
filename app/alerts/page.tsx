@@ -1,7 +1,8 @@
-import { supabase } from "@/lib/supabase";
-import { AlertTriangle, Wifi, UploadCloud, Database, WifiOff, CreditCard } from "lucide-react";
+"use client";
 
-export const revalidate = 0;
+import { useEffect, useState } from "react";
+import { AlertTriangle, Wifi, UploadCloud, Database, WifiOff, CreditCard, CheckCheck } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 type NotificationRow = {
   id: number;
@@ -21,36 +22,63 @@ const TYPE_META: Record<string, { icon: typeof AlertTriangle; label: string; col
   offline: { icon: WifiOff, label: "Offline", color: "text-alert" },
 };
 
-async function getNotifications(): Promise<NotificationRow[]> {
-  const { data } = await supabase
-    .from("notifications")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(100);
+export default function AlertsPage() {
+  const [notifications, setNotifications] = useState<NotificationRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Tandai semua yang belum dibaca jadi sudah dibaca, begitu halaman ini dibuka.
-  const unreadIds = (data ?? []).filter((n) => !n.is_read).map((n) => n.id);
-  if (unreadIds.length > 0) {
+  async function loadNotifications() {
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setNotifications((data ?? []) as NotificationRow[]);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  async function handleMarkOne(id: number) {
+    // Update optimis di UI dulu biar kerasa instan, baru simpan ke database
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+  }
+
+  async function handleMarkAll() {
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds);
   }
 
-  return (data ?? []) as NotificationRow[];
-}
-
-export default async function AlertsPage() {
-  const notifications = await getNotifications();
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
     <main>
-      <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold text-ink">Alerts</h1>
-        <p className="mt-2 font-body text-sm text-ink/60">
-          Riwayat notifikasi sistem — threshold, WiFi, OTA, backup, pulsa, dan status offline.
-        </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-ink">Alerts</h1>
+          <p className="mt-2 font-body text-sm text-ink/60">
+            Riwayat notifikasi sistem — klik notifikasi buat tandai dibaca, atau tandai semua sekaligus.
+          </p>
+        </div>
+        {unreadCount > 0 && (
+          <button
+            onClick={handleMarkAll}
+            className="glass-pill flex items-center gap-2 px-4 py-2 font-body text-xs text-teal hover:opacity-80"
+          >
+            <CheckCheck size={14} />
+            Tandai Semua Dibaca ({unreadCount})
+          </button>
+        )}
       </div>
 
       <div className="glass-card px-6 py-4">
-        {notifications.length === 0 ? (
+        {loading ? (
+          <p className="py-10 text-center font-body text-sm text-ink/40">Memuat...</p>
+        ) : notifications.length === 0 ? (
           <p className="py-10 text-center font-body text-sm text-ink/40">
             Belum ada notifikasi.
           </p>
@@ -64,8 +92,16 @@ export default async function AlertsPage() {
               };
               const Icon = meta.icon;
               return (
-                <div key={n.id} className="flex items-start gap-3 py-3">
-                  <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink/5 ${meta.color}`}>
+                <button
+                  key={n.id}
+                  onClick={() => !n.is_read && handleMarkOne(n.id)}
+                  className={`flex w-full items-start gap-3 py-3 text-left transition-colors ${
+                    n.is_read ? "" : "hover:bg-teal/5"
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink/5 ${meta.color}`}
+                  >
                     <Icon size={15} />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -77,12 +113,18 @@ export default async function AlertsPage() {
                         <span className="h-1.5 w-1.5 rounded-full bg-alert" title="Belum dibaca" />
                       )}
                     </div>
-                    <p className="mt-0.5 font-body text-sm text-ink/80">{n.message}</p>
+                    <p
+                      className={`mt-0.5 font-body text-sm ${
+                        n.is_read ? "text-ink/60" : "font-medium text-ink"
+                      }`}
+                    >
+                      {n.message}
+                    </p>
                     <p className="mt-0.5 font-body text-xs text-ink/40">
                       {new Date(n.created_at).toLocaleString("id-ID")}
                     </p>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
