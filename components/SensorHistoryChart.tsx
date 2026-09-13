@@ -28,7 +28,7 @@ type SensorKey = (typeof SENSOR_OPTIONS)[number]["key"];
 type RangeKey = "yesterday" | "7d" | "30d" | "365d" | "custom";
 
 const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
-  { key: "yesterday", label: "Kemarin" },
+  { key: "yesterday", label: "24 Jam Terakhir" },
   { key: "7d", label: "7 Hari" },
   { key: "30d", label: "1 Bulan" },
   { key: "365d", label: "1 Tahun" },
@@ -108,11 +108,13 @@ export default function SensorHistoryChart({
       setChartData([]);
       return;
     }
-    setLoading(true);
-    const { from, to } = rangeToDates(range, customFrom, customTo);
+
     const deviceCodeMap = new Map(devices.map((d) => [d.id, d.device_code]));
 
-    (async () => {
+    async function fetchChartData(showLoading: boolean) {
+      if (showLoading) setLoading(true);
+      const { from, to } = rangeToDates(range, customFrom, customTo);
+
       const { data, error } = await supabase
         .from("sensor_readings")
         .select(`device_id, recorded_at, ${sensorKey}`)
@@ -124,7 +126,7 @@ export default function SensorHistoryChart({
 
       if (error) {
         console.error("Gagal ambil data grafik:", error.message);
-        setLoading(false);
+        if (showLoading) setLoading(false);
         return;
       }
 
@@ -142,9 +144,16 @@ export default function SensorHistoryChart({
         grouped.get(t)[code] = row[sensorKey];
       });
       setChartData(Array.from(grouped.values()));
-      setLoading(false);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    })();
+      if (showLoading) setLoading(false);
+    }
+
+    fetchChartData(true); // fetch pertama, tampilkan loading
+
+    // Auto-refresh tiap 30 detik biar grafik "24 Jam Terakhir" & "7 Hari" beneran
+    // nyampe ke data ter-update, bukan cuma snapshot pas terakhir klik filter.
+    const intervalId = setInterval(() => fetchChartData(false), 30000);
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sensorKey, range, customFrom, customTo, primaryDeviceId, compareIds.join(",")]);
 
   const otherDevices = devices.filter((d) => d.id !== primaryDeviceId);
@@ -157,7 +166,9 @@ export default function SensorHistoryChart({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="font-display text-lg font-bold text-ink">Grafik Historis</p>
-          <p className="font-body text-xs text-ink/50">Riwayat pembacaan sensor dari waktu ke waktu</p>
+          <p className="font-body text-xs text-ink/50">
+            Riwayat pembacaan sensor · auto-refresh tiap 30 detik
+          </p>
         </div>
 
         <select
