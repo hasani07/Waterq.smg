@@ -260,7 +260,7 @@ export default function SensorHistoryChart({
             Belum ada data untuk rentang waktu ini.
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={460}>
             <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
               <defs>
                 {activeLabels.map((label, idx) => (
