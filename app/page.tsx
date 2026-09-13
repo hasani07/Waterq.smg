@@ -1,6 +1,7 @@
 import { supabase, DevicePublic } from "@/lib/supabase";
 import LiveDashboard from "@/components/LiveDashboard";
 import { Radio, Wifi, WifiOff, RefreshCw } from "lucide-react";
+import Image from "next/image";
 
 export const revalidate = 0;
 
@@ -61,63 +62,16 @@ export default async function Home({
             </p>
           </div>
 
-          {/* Ikon 3D-style: globe dengan shading & highlight, cincin orbit sensor */}
-          <svg
-            className="h-32 w-32 shrink-0 md:h-40 md:w-40"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <radialGradient id="atmosx-sphere" cx="35%" cy="30%" r="75%">
-                <stop offset="0%" stopColor="#6FD1D8" />
-                <stop offset="45%" stopColor="rgb(var(--color-teal-light))" />
-                <stop offset="100%" stopColor="rgb(var(--color-teal-dark))" />
-              </radialGradient>
-              <radialGradient id="atmosx-highlight" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.85" />
-                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-              </radialGradient>
-              <filter id="atmosx-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="rgb(var(--color-teal))" floodOpacity="0.35" />
-              </filter>
-            </defs>
-
-            {/* Cincin orbit miring, kesan "atmosfer" */}
-            <ellipse
-              cx="100"
-              cy="100"
-              rx="88"
-              ry="30"
-              fill="none"
-              stroke="rgb(var(--color-sediment))"
-              strokeWidth="3"
-              opacity="0.55"
-              transform="rotate(-18 100 100)"
+          {/* Logo 3D AtmosX (dari aset yang di-upload, background sudah dihilangkan) */}
+          <div className="relative h-32 w-32 shrink-0 md:h-40 md:w-40">
+            <Image
+              src="/atmosx-icon.png"
+              alt="AtmosX"
+              fill
+              className="object-contain drop-shadow-xl"
+              priority
             />
-            <circle
-              cx="178"
-              cy="88"
-              r="5"
-              fill="rgb(var(--color-sediment))"
-              transform="rotate(-18 100 100)"
-            />
-
-            {/* Bola utama dengan shading 3D */}
-            <g filter="url(#atmosx-shadow)">
-              <circle cx="100" cy="100" r="62" fill="url(#atmosx-sphere)" />
-              <circle cx="82" cy="78" r="34" fill="url(#atmosx-highlight)" />
-            </g>
-
-            {/* Garis "gelombang sensor" melintasi bola, senada logo utama */}
-            <path
-              d="M45 108 Q 70 96 100 108 T 155 108"
-              stroke="#F3F6F4"
-              strokeWidth="3"
-              strokeLinecap="round"
-              fill="none"
-              opacity="0.85"
-            />
-          </svg>
+          </div>
         </div>
       </section>
 
