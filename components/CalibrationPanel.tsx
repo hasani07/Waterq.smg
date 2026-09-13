@@ -30,6 +30,42 @@ export default function CalibrationPanel({ token }: { token: string }) {
   const [riverbedToNormal, setRiverbedToNormal] = useState("");
   const [normalToSensor, setNormalToSensor] = useState("");
 
+  type CalibHistoryRow = {
+    id: number;
+    calibrated_at?: string;
+    effective_from?: string;
+    calibration_params?: { point1?: { raw: number | null; actual: number | null }; point2?: { raw: number | null; actual: number | null } };
+    riverbed_to_normal_water_cm?: number | null;
+    normal_water_to_sensor_cm?: number | null;
+  };
+  const [history, setHistory] = useState<CalibHistoryRow[]>([]);
+
+  async function loadHistory(devId: string, sType: string) {
+    if (!devId) return;
+    if (sType === "water_level") {
+      const { data } = await supabase
+        .from("water_level_calibration")
+        .select("*")
+        .eq("device_id", devId)
+        .order("effective_from", { ascending: false })
+        .limit(20);
+      setHistory((data ?? []) as CalibHistoryRow[]);
+    } else {
+      const { data } = await supabase
+        .from("calibration_log")
+        .select("*")
+        .eq("device_id", devId)
+        .eq("sensor_type", sType)
+        .order("calibrated_at", { ascending: false })
+        .limit(20);
+      setHistory((data ?? []) as CalibHistoryRow[]);
+    }
+  }
+
+  useEffect(() => {
+    loadHistory(selectedId, sensorType);
+  }, [selectedId, sensorType]);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("devices_public").select("*").order("device_code");
@@ -62,6 +98,7 @@ export default function CalibrationPanel({ token }: { token: string }) {
     const { error } = await callProtectedFunction("update-calibration", body, token);
     setSaving(false);
     setFeedback(error ? `Gagal: ${error}` : "Kalibrasi tersimpan ✓");
+    if (!error) loadHistory(selectedId, sensorType);
   }
 
   if (devices.length === 0) {
@@ -179,6 +216,35 @@ export default function CalibrationPanel({ token }: { token: string }) {
         </button>
         {feedback && <span className="font-body text-xs text-ink/50">{feedback}</span>}
       </div>
+
+      {history.length > 0 && (
+        <div className="mt-5 border-t border-line pt-4">
+          <p className="font-body text-xs text-ink/50">Riwayat 20 kalibrasi terakhir ({sensorType}):</p>
+          <div className="mt-2 max-h-[150px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-1.5">
+              {history.map((h) => (
+                <div key={h.id} className="flex items-center justify-between font-body text-xs">
+                  {sensorType === "water_level" ? (
+                    <span className="text-sediment tabular-nums">
+                      normal→sensor: {h.normal_water_to_sensor_cm ?? "—"} cm
+                      {h.riverbed_to_normal_water_cm != null && ` · dasar→normal: ${h.riverbed_to_normal_water_cm} cm`}
+                    </span>
+                  ) : (
+                    <span className="text-sediment tabular-nums">
+                      P1: {h.calibration_params?.point1?.raw ?? "—"}→{h.calibration_params?.point1?.actual ?? "—"}
+                      {" · "}
+                      P2: {h.calibration_params?.point2?.raw ?? "—"}→{h.calibration_params?.point2?.actual ?? "—"}
+                    </span>
+                  )}
+                  <span className="text-ink/40">
+                    {new Date(h.calibrated_at ?? h.effective_from ?? "").toLocaleString("id-ID")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
