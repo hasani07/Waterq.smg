@@ -72,7 +72,7 @@ export default function SerialMonitorPanel({ token }: { token: string }) {
 
   if (devices.length === 0) {
     return (
-      <div className="border border-line bg-white/60 px-6 py-6">
+      <div className="glass-card px-6 py-6">
         <p className="font-display text-lg font-bold text-ink">Serial Monitor</p>
         <p className="mt-2 font-body text-sm text-ink/50">Belum ada device terdaftar.</p>
       </div>
@@ -80,7 +80,7 @@ export default function SerialMonitorPanel({ token }: { token: string }) {
   }
 
   return (
-    <div className="border border-line bg-white/60 px-6 py-6">
+    <div className="glass-card px-6 py-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="font-display text-lg font-bold text-ink">Serial Monitor</p>
         <div className="flex items-center gap-3">
