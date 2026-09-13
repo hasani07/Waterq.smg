@@ -174,7 +174,7 @@ export default function SensorHistoryChart({
         <select
           value={sensorKey}
           onChange={(e) => setSensorKey(e.target.value as SensorKey)}
-          className="glass-pill bg-white/70 px-4 py-2 font-body text-sm text-ink outline-none"
+          className="glass-pill bg-ink/5 px-4 py-2 font-body text-sm text-ink outline-none"
         >
           {SENSOR_OPTIONS.map((opt) => (
             <option key={opt.key} value={opt.key}>
@@ -191,7 +191,7 @@ export default function SensorHistoryChart({
             key={opt.key}
             onClick={() => setRange(opt.key)}
             className={`glass-pill px-4 py-1.5 font-body text-xs transition-colors ${
-              range === opt.key ? "bg-teal text-white" : "bg-white/50 text-ink/70 hover:text-teal"
+              range === opt.key ? "bg-teal text-white" : "bg-ink/5 text-ink/70 hover:text-teal"
             }`}
           >
             {opt.label}
@@ -207,7 +207,7 @@ export default function SensorHistoryChart({
               type="date"
               value={customFrom}
               onChange={(e) => setCustomFrom(e.target.value)}
-              className="glass-pill ml-1 bg-white/60 px-3 py-1.5 font-body text-xs outline-none"
+              className="glass-pill ml-1 bg-ink/5 px-3 py-1.5 font-body text-xs outline-none"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -216,7 +216,7 @@ export default function SensorHistoryChart({
               type="date"
               value={customTo}
               onChange={(e) => setCustomTo(e.target.value)}
-              className="glass-pill ml-1 bg-white/60 px-3 py-1.5 font-body text-xs outline-none"
+              className="glass-pill ml-1 bg-ink/5 px-3 py-1.5 font-body text-xs outline-none"
             />
           </label>
         </div>
@@ -231,7 +231,7 @@ export default function SensorHistoryChart({
               <label
                 key={d.id}
                 className={`glass-pill flex items-center gap-1.5 px-3 py-1.5 font-body text-xs transition-colors ${
-                  compareIds.includes(d.id) ? "bg-teal/10 text-teal" : "bg-white/40 text-ink/60"
+                  compareIds.includes(d.id) ? "bg-teal/10 text-teal" : "bg-ink/5 text-ink/60"
                 }`}
               >
                 <input
