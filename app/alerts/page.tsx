@@ -27,6 +27,13 @@ async function getNotifications(): Promise<NotificationRow[]> {
     .select("*")
     .order("created_at", { ascending: false })
     .limit(100);
+
+  // Tandai semua yang belum dibaca jadi sudah dibaca, begitu halaman ini dibuka.
+  const unreadIds = (data ?? []).filter((n) => !n.is_read).map((n) => n.id);
+  if (unreadIds.length > 0) {
+    await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds);
+  }
+
   return (data ?? []) as NotificationRow[];
 }
 
