@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import PinGate from "@/components/PinGate";
+import DeviceInfoPanel from "@/components/DeviceInfoPanel";
 import ThresholdPanel from "@/components/ThresholdPanel";
 import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
 import IntervalPanel from "@/components/IntervalPanel";
@@ -31,6 +32,7 @@ export default function SettingsPage() {
           <PinGate>
             {(token) => (
               <div className="flex flex-col gap-8">
+                <DeviceInfoPanel token={token} />
                 <ThresholdPanel token={token} />
                 <NotificationPreferencesPanel token={token} />
                 <IntervalPanel token={token} />
