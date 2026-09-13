@@ -47,7 +47,7 @@ export default function IntervalPanel({ token }: { token: string }) {
 
   if (devices.length === 0) {
     return (
-      <div className="border border-line bg-white/60 px-6 py-6">
+      <div className="glass-card px-6 py-6">
         <p className="font-display text-lg font-bold text-ink">Interval Pengiriman Data</p>
         <p className="mt-2 font-body text-sm text-ink/50">Belum ada device terdaftar.</p>
       </div>
@@ -55,7 +55,7 @@ export default function IntervalPanel({ token }: { token: string }) {
   }
 
   return (
-    <div className="border border-line bg-white/60 px-6 py-6">
+    <div className="glass-card px-6 py-6">
       <p className="font-display text-lg font-bold text-ink">Interval Pengiriman Data</p>
       <p className="mt-1 font-body text-xs text-ink/50">
         Batas 1–60 menit. Perubahan dipakai mulai siklus bangun ESP32 berikutnya (lihat catatan di
