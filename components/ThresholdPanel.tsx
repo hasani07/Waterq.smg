@@ -16,11 +16,33 @@ const SENSOR_CONFIG = [
 ] as const;
 
 type ThresholdRow = { min_value: number | null; max_value: number | null };
+type ThresholdHistoryRow = {
+  id: number;
+  sensor_type: string;
+  min_value: number | null;
+  max_value: number | null;
+  changed_at: string;
+};
 
 export default function ThresholdPanel({ token }: { token: string }) {
   const [values, setValues] = useState<Record<string, ThresholdRow>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Record<string, string>>({});
+  const [history, setHistory] = useState<ThresholdHistoryRow[]>([]);
+
+  async function loadHistory() {
+    const { data } = await supabase
+      .from("threshold_history")
+      .select("*")
+      .is("device_id", null)
+      .order("changed_at", { ascending: false })
+      .limit(20);
+    setHistory((data ?? []) as ThresholdHistoryRow[]);
+  }
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -56,6 +78,7 @@ export default function ThresholdPanel({ token }: { token: string }) {
 
     setSavingKey(null);
     setFeedback((f) => ({ ...f, [sensorKey]: error ? `Gagal: ${error}` : "Tersimpan ✓" }));
+    if (!error) loadHistory();
   }
 
   return (
@@ -132,6 +155,27 @@ export default function ThresholdPanel({ token }: { token: string }) {
           );
         })}
       </div>
+
+      {history.length > 0 && (
+        <div className="mt-6 border-t border-line pt-4">
+          <p className="font-body text-xs text-ink/50">Riwayat 20 perubahan terakhir:</p>
+          <div className="mt-2 max-h-[150px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-1.5">
+              {history.map((h) => (
+                <div key={h.id} className="flex items-center justify-between font-body text-xs">
+                  <span className="w-20 shrink-0 text-ink/70">{h.sensor_type}</span>
+                  <span className="text-sediment tabular-nums">
+                    {h.min_value ?? "—"} – {h.max_value ?? "—"}
+                  </span>
+                  <span className="text-ink/40">
+                    {new Date(h.changed_at).toLocaleString("id-ID")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
