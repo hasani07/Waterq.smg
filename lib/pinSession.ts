@@ -73,9 +73,24 @@ export async function callProtectedFunction<T = unknown>(
   });
 
   if (error) {
-    // supabase-js melempar error generik kalau status bukan 2xx; kita anggap 401 = token expired
-    const message = error.message ?? "Terjadi kesalahan";
-    const expired = message.includes("401") || message.toLowerCase().includes("unauthorized");
+    // supabase-js cuma kasih pesan generik ("Edge Function returned a non-2xx status code")
+    // di error.message -- pesan ASLI dari function ada di error.context (Response mentah).
+    // Kita coba baca body JSON-nya dulu buat dapet pesan yang sebenarnya.
+    let message = error.message ?? "Terjadi kesalahan";
+    let status: number | undefined;
+    try {
+      // @ts-expect-error -- FunctionsHttpError punya .context berisi Response asli, tidak selalu ada di tipe
+      const ctx = error.context as Response | undefined;
+      status = ctx?.status;
+      if (ctx) {
+        const parsed = await ctx.clone().json();
+        if (parsed?.error) message = parsed.error;
+      }
+    } catch {
+      // kalau body-nya bukan JSON valid, tetap pakai pesan generik di atas
+    }
+
+    const expired = status === 401 || message.toLowerCase().includes("pin tidak valid");
     if (expired) sessionStorage.removeItem(STORAGE_KEY);
     return { data: null, error: message, expired };
   }
