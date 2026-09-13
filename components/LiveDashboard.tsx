@@ -125,7 +125,11 @@ export default function LiveDashboard({ devices }: { devices: DevicePublic[] }) 
               Update terakhir: {formatDateTime(reading?.recorded_at)}
             </span>
             <span className="font-body text-xs text-ink/50">
-              Uptime: {formatUptime(status?.uptime_seconds)}
+              Uptime: {formatUptime(
+                status?.is_online && status?.online_since
+                  ? (Date.now() - new Date(status.online_since).getTime()) / 1000
+                  : null,
+              )}
             </span>
           </div>
         </div>
