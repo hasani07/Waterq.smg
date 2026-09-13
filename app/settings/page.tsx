@@ -8,6 +8,8 @@ import IntervalPanel from "@/components/IntervalPanel";
 import WifiPanel from "@/components/WifiPanel";
 import OtaPanel from "@/components/OtaPanel";
 import CalibrationPanel from "@/components/CalibrationPanel";
+import SerialMonitorPanel from "@/components/SerialMonitorPanel";
+import DatabasePanel from "@/components/DatabasePanel";
 
 export default function SettingsPage() {
   return (
@@ -35,6 +37,8 @@ export default function SettingsPage() {
                 <WifiPanel token={token} />
                 <OtaPanel token={token} />
                 <CalibrationPanel token={token} />
+                <SerialMonitorPanel token={token} />
+                <DatabasePanel token={token} />
               </div>
             )}
           </PinGate>
