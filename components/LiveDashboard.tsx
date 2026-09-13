@@ -171,12 +171,12 @@ export default function LiveDashboard({
       </GlassCard>
 
       {/* Peta + Grafik sejajar */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
-        <GlassCard className="flex flex-col">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <GlassCard>
           <div className="flex flex-wrap items-center justify-between gap-4 pb-4">
             <p className="font-display text-lg font-bold text-ink">Peta Stasiun</p>
           </div>
-          <div className="min-h-[380px] flex-1 overflow-hidden rounded-2xl">
+          <div className="overflow-hidden rounded-2xl">
             <DeviceMap
               devices={devices}
               selectedDeviceId={selectedDeviceId}
