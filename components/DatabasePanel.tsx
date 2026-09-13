@@ -137,7 +137,7 @@ export default function DatabasePanel({ token }: { token: string }) {
   const barColor = usedPercent >= 50 ? "bg-alert" : usedPercent >= 30 ? "bg-sediment" : "bg-teal";
 
   return (
-    <div className="border border-line bg-white/60 px-6 py-6">
+    <div className="glass-card px-6 py-6">
       <p className="font-display text-lg font-bold text-ink">Panel Database</p>
 
       <div className="mt-5">
