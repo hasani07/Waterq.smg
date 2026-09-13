@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -61,6 +61,26 @@ function rangeToDates(range: RangeKey, customFrom: string, customTo: string) {
       break;
   }
   return { from, to };
+}
+
+// Tooltip kustom bergaya kaca, senada dengan tema Neo-Glassmorphism
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function GlassTooltip({ active, payload, label }: any) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="glass-card-sm px-4 py-3">
+      <p className="font-body text-[11px] text-ink/50">{label}</p>
+      <div className="mt-1 flex flex-col gap-1">
+        {payload.map((p: { name: string; value: number; color: string }) => (
+          <div key={p.name} className="flex items-center gap-2 font-body text-xs">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
+            <span className="text-ink/70">{p.name}:</span>
+            <span className="font-display font-bold text-ink">{p.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function SensorHistoryChart({
@@ -143,7 +163,7 @@ export default function SensorHistoryChart({
         <select
           value={sensorKey}
           onChange={(e) => setSensorKey(e.target.value as SensorKey)}
-          className="border border-line bg-white px-3 py-2 font-body text-sm text-ink"
+          className="glass-pill bg-white/70 px-4 py-2 font-body text-sm text-ink outline-none"
         >
           {SENSOR_OPTIONS.map((opt) => (
             <option key={opt.key} value={opt.key}>
@@ -159,10 +179,8 @@ export default function SensorHistoryChart({
           <button
             key={opt.key}
             onClick={() => setRange(opt.key)}
-            className={`border px-3 py-1.5 font-body text-xs transition-colors ${
-              range === opt.key
-                ? "border-teal bg-teal text-white"
-                : "border-line bg-white text-ink/70 hover:border-teal"
+            className={`glass-pill px-4 py-1.5 font-body text-xs transition-colors ${
+              range === opt.key ? "bg-teal text-white" : "bg-white/50 text-ink/70 hover:text-teal"
             }`}
           >
             {opt.label}
@@ -178,7 +196,7 @@ export default function SensorHistoryChart({
               type="date"
               value={customFrom}
               onChange={(e) => setCustomFrom(e.target.value)}
-              className="ml-1 border border-line px-2 py-1 font-body text-xs"
+              className="glass-pill ml-1 bg-white/60 px-3 py-1.5 font-body text-xs outline-none"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -187,7 +205,7 @@ export default function SensorHistoryChart({
               type="date"
               value={customTo}
               onChange={(e) => setCustomTo(e.target.value)}
-              className="ml-1 border border-line px-2 py-1 font-body text-xs"
+              className="glass-pill ml-1 bg-white/60 px-3 py-1.5 font-body text-xs outline-none"
             />
           </label>
         </div>
@@ -195,11 +213,16 @@ export default function SensorHistoryChart({
 
       {/* Banding antar device */}
       {otherDevices.length > 0 && (
-        <div className="mt-4 border-t border-line pt-3">
+        <div className="mt-4 border-t border-white/50 pt-3">
           <p className="font-body text-xs text-ink/50">Bandingkan dengan stasiun lain:</p>
-          <div className="mt-2 flex flex-wrap gap-3">
+          <div className="mt-2 flex flex-wrap gap-2">
             {otherDevices.map((d) => (
-              <label key={d.id} className="flex items-center gap-1.5 font-body text-xs text-ink/70">
+              <label
+                key={d.id}
+                className={`glass-pill flex items-center gap-1.5 px-3 py-1.5 font-body text-xs transition-colors ${
+                  compareIds.includes(d.id) ? "bg-teal/10 text-teal" : "bg-white/40 text-ink/60"
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={compareIds.includes(d.id)}
@@ -208,6 +231,7 @@ export default function SensorHistoryChart({
                       e.target.checked ? [...prev, d.id] : prev.filter((id) => id !== d.id),
                     );
                   }}
+                  className="accent-teal"
                 />
                 {d.device_code} — {d.name}
               </label>
@@ -226,24 +250,54 @@ export default function SensorHistoryChart({
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={chartData}>
-              <CartesianGrid stroke="#D9E0DC" strokeDasharray="3 3" />
-              <XAxis dataKey="time" tick={{ fontSize: 11 }} stroke="#122320" />
-              <YAxis tick={{ fontSize: 11 }} stroke="#122320" />
-              <Tooltip />
-              {activeLabels.length > 1 && <Legend />}
+            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+              <defs>
+                {activeLabels.map((label, idx) => (
+                  <linearGradient key={label} id={`fill-${label}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor={LINE_COLORS[idx % LINE_COLORS.length]}
+                      stopOpacity={0.35}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={LINE_COLORS[idx % LINE_COLORS.length]}
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid stroke="#14555C" strokeOpacity={0.08} vertical={false} />
+              <XAxis
+                dataKey="time"
+                tick={{ fontSize: 11, fill: "#12232099" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: "#12232099" }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Tooltip content={<GlassTooltip />} />
+              {activeLabels.length > 1 && (
+                <Legend wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-ibm-plex)" }} />
+              )}
               {activeLabels.map((label, idx) => (
-                <Line
+                <Area
                   key={label}
                   type="monotone"
                   dataKey={label}
                   stroke={LINE_COLORS[idx % LINE_COLORS.length]}
-                  strokeWidth={2}
+                  strokeWidth={2.5}
+                  fill={`url(#fill-${label})`}
                   dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0 }}
                   connectNulls
                 />
               ))}
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         )}
       </div>
