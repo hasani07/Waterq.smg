@@ -21,13 +21,27 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
     })();
     loadUnreadCount();
 
+    // Dengerin perubahan apapun di tabel notifications (baru masuk, atau ditandai dibaca
+    // dari halaman Alerts) biar angka di lonceng ini selalu ke-update tanpa perlu refresh.
+    const channel = supabase
+      .channel("notifications-badge")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        () => loadUnreadCount(),
+      )
+      .subscribe();
+
     function handleClickOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setShowResults(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function loadUnreadCount() {
