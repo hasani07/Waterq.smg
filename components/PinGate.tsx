@@ -32,7 +32,7 @@ export default function PinGate({
           inputMode="numeric"
           value={pin}
           onChange={(e) => setPin(e.target.value)}
-          className="glass-pill w-full bg-white/60 px-4 py-3 text-center font-display text-lg tracking-widest text-ink outline-none"
+          className="glass-pill w-full bg-ink/5 px-4 py-3 text-center font-display text-lg tracking-widest text-ink outline-none"
           placeholder="••••••"
           autoFocus
         />
