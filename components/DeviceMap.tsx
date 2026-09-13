@@ -40,7 +40,7 @@ export default function DeviceMap({
     <MapContainer
       center={center}
       zoom={12}
-      style={{ height: "100%", width: "100%", minHeight: "380px" }}
+      style={{ height: "380px", width: "100%" }}
       scrollWheelZoom={false}
     >
       <TileLayer
