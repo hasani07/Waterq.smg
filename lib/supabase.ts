@@ -38,5 +38,5 @@ export type DeviceStatus = {
   device_id: string;
   is_online: boolean;
   last_seen_at: string;
-  uptime_seconds: number | null;
+  online_since: string | null;
 };
