@@ -1,7 +1,6 @@
 import { supabase, DevicePublic } from "@/lib/supabase";
 import LiveDashboard from "@/components/LiveDashboard";
 import { Radio, Wifi, WifiOff, RefreshCw } from "lucide-react";
-import Image from "next/image";
 
 export const revalidate = 0;
 
@@ -62,16 +61,75 @@ export default async function Home({
             </p>
           </div>
 
-          {/* Logo 3D AtmosX (dari aset yang di-upload, background sudah dihilangkan) */}
-          <div className="relative h-32 w-32 shrink-0 md:h-40 md:w-40">
-            <Image
-              src="/atmosx-icon.png"
-              alt="AtmosX"
-              fill
-              className="object-contain drop-shadow-xl"
-              priority
+          {/* Logo 3D AtmosX -- versi vector, terinspirasi referensi (bola belah metalik+kaca,
+              simbol atom/tetesan di dalam, cincin orbit) */}
+          <svg
+            className="h-32 w-32 shrink-0 md:h-40 md:w-40"
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="atmosx-metal" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#E7ECEC" />
+                <stop offset="45%" stopColor="#AFC0C2" />
+                <stop offset="100%" stopColor="#5C7275" />
+              </linearGradient>
+              <radialGradient id="atmosx-glass" cx="40%" cy="35%" r="75%">
+                <stop offset="0%" stopColor="#8FEDE0" />
+                <stop offset="50%" stopColor="rgb(var(--color-teal-light))" />
+                <stop offset="100%" stopColor="rgb(var(--color-teal-dark))" />
+              </radialGradient>
+              <linearGradient id="atmosx-inner" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#B9FFF1" />
+                <stop offset="100%" stopColor="#1FA88E" />
+              </linearGradient>
+              <radialGradient id="atmosx-highlight" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+              </radialGradient>
+              <filter id="atmosx-shadow" x="-60%" y="-60%" width="220%" height="220%">
+                <feDropShadow dx="0" dy="10" stdDeviation="9" floodColor="rgb(var(--color-teal))" floodOpacity="0.35" />
+              </filter>
+              <clipPath id="atmosx-clip-left">
+                <path d="M100 30 A70 70 0 0 0 100 170 Z" />
+              </clipPath>
+              <clipPath id="atmosx-clip-right">
+                <path d="M100 30 A70 70 0 0 1 100 170 Z" />
+              </clipPath>
+            </defs>
+
+            {/* Cincin orbit belakang */}
+            <ellipse
+              cx="100" cy="100" rx="92" ry="28"
+              fill="none" stroke="#8FEDE0" strokeWidth="3.5" opacity="0.55"
+              transform="rotate(-16 100 100)"
             />
-          </div>
+
+            <g filter="url(#atmosx-shadow)">
+              {/* Belahan kiri: metalik */}
+              <g clipPath="url(#atmosx-clip-left)">
+                <circle cx="100" cy="100" r="70" fill="url(#atmosx-metal)" />
+              </g>
+              {/* Belahan kanan: kaca teal */}
+              <g clipPath="url(#atmosx-clip-right)">
+                <circle cx="100" cy="100" r="70" fill="url(#atmosx-glass)" />
+              </g>
+              {/* Garis pemisah belahan */}
+              <path d="M100 30 A70 70 0 0 0 100 170" fill="none" stroke="#FFFFFF" strokeOpacity="0.4" strokeWidth="1.5" />
+
+              {/* Simbol dalam: tetesan + lingkaran melingkar, kesan atom/air */}
+              <g transform="translate(100 102)">
+                <path
+                  d="M0 -34 C 14 -14 20 2 20 14 C20 30 8 40 -6 34 C -18 29 -22 14 -14 0 C -10 -8 -5 -22 0 -34 Z"
+                  fill="url(#atmosx-inner)"
+                  opacity="0.95"
+                />
+                <ellipse cx="0" cy="8" rx="26" ry="15" fill="none" stroke="#EAFFFA" strokeWidth="4" opacity="0.85" />
+              </g>
+
+              <circle cx="78" cy="72" r="26" fill="url(#atmosx-highlight)" />
+            </g>
+          </svg>
         </div>
       </section>
 
