@@ -36,7 +36,7 @@ export default function OtaPanel({ token }: { token: string }) {
         .select("id, version, status, uploaded_at")
         .eq("device_id", selectedId)
         .order("uploaded_at", { ascending: false })
-        .limit(5);
+        .limit(20);
       setHistory((data ?? []) as OtaHistoryRow[]);
     })();
   }, [selectedId, feedback]);
@@ -139,27 +139,29 @@ export default function OtaPanel({ token }: { token: string }) {
 
       {history.length > 0 && (
         <div className="mt-5 border-t border-line pt-4">
-          <p className="font-body text-xs text-ink/50">Riwayat OTA:</p>
-          <div className="mt-2 flex flex-col gap-1.5">
-            {history.map((h) => (
-              <div key={h.id} className="flex items-center justify-between font-body text-xs">
-                <span className="text-ink/70">v{h.version}</span>
-                <span
-                  className={
-                    h.status === "success"
-                      ? "text-teal"
-                      : h.status === "pending"
-                        ? "text-sediment"
-                        : "text-alert"
-                  }
-                >
-                  {h.status}
-                </span>
-                <span className="text-ink/40">
-                  {new Date(h.uploaded_at).toLocaleString("id-ID")}
-                </span>
-              </div>
-            ))}
+          <p className="font-body text-xs text-ink/50">Riwayat 20 terakhir:</p>
+          <div className="mt-2 max-h-[150px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-1.5">
+              {history.map((h) => (
+                <div key={h.id} className="flex items-center justify-between font-body text-xs">
+                  <span className="text-ink/70">v{h.version}</span>
+                  <span
+                    className={
+                      h.status === "success"
+                        ? "text-teal"
+                        : h.status === "pending"
+                          ? "text-sediment"
+                          : "text-alert"
+                    }
+                  >
+                    {h.status}
+                  </span>
+                  <span className="text-ink/40">
+                    {new Date(h.uploaded_at).toLocaleString("id-ID")}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
