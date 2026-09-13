@@ -1,6 +1,7 @@
 "use client";
 
 import PinGate from "@/components/PinGate";
+import DeviceListPanel from "@/components/DeviceListPanel";
 import DeviceInfoPanel from "@/components/DeviceInfoPanel";
 
 export default function DevicesPage() {
@@ -12,7 +13,14 @@ export default function DevicesPage() {
           Kelola identitas, lokasi, dan info SIM tiap device. Dilindungi PIN.
         </p>
       </div>
-      <PinGate>{(token) => <DeviceInfoPanel token={token} />}</PinGate>
+      <PinGate>
+        {(token) => (
+          <div className="flex flex-col gap-6">
+            <DeviceListPanel token={token} />
+            <DeviceInfoPanel token={token} />
+          </div>
+        )}
+      </PinGate>
     </main>
   );
 }
