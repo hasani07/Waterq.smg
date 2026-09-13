@@ -141,7 +141,7 @@ export default function LiveDashboard({
           <select
             value={selectedDeviceId ?? ""}
             onChange={(e) => setSelectedDeviceId(e.target.value)}
-            className="glass-pill bg-white/70 px-4 py-2 font-body text-sm text-ink outline-none"
+            className="glass-pill bg-ink/5 px-4 py-2 font-body text-sm text-ink outline-none"
           >
             {devices.map((d) => (
               <option key={d.id} value={d.id}>
