@@ -115,6 +115,24 @@ export default function DatabasePanel({ token }: { token: string }) {
     loadUsage();
   }
 
+  async function handleDownloadBackup(fileName: string | null) {
+    if (!fileName) return;
+    const { data, error } = await callProtectedFunction<{ url: string }>(
+      "get-backup-download-url",
+      { file_name: fileName },
+      token,
+    );
+    if (error || !data) {
+      setBackupFeedback(`Gagal ambil link download: ${error}`);
+      return;
+    }
+    // Signed URL cuma berlaku 60 detik, jadi langsung dipakai begitu didapat
+    const link = document.createElement("a");
+    link.href = data.url;
+    link.download = fileName;
+    link.click();
+  }
+
   const usedPercent = usage?.used_percent ?? 0;
   const barColor = usedPercent >= 50 ? "bg-alert" : usedPercent >= 30 ? "bg-sediment" : "bg-teal";
 
@@ -172,6 +190,16 @@ export default function DatabasePanel({ token }: { token: string }) {
                 >
                   {b.status}
                 </span>
+                {b.file_url ? (
+                  <button
+                    onClick={() => handleDownloadBackup(b.file_url)}
+                    className="text-teal underline hover:opacity-70"
+                  >
+                    Download
+                  </button>
+                ) : (
+                  <span className="text-ink/20">—</span>
+                )}
               </div>
             ))}
           </div>
