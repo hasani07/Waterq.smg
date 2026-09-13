@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import TopBar from "@/components/TopBar";
+import AppShell from "@/components/AppShell";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -41,13 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className={`${spaceGrotesk.variable} ${ibmPlex.variable} font-body`}>
-        <div className="flex gap-4 p-4">
-          <Sidebar />
-          <div className="min-w-0 flex-1">
-            <TopBar />
-            {children}
-          </div>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
