@@ -23,6 +23,8 @@ const CYCLE_MS = 8000; // ganti device tiap 8 detik di mode Cycle
 
 type EarlyWarning = { device: DevicePublic; level: "waspada" | "bahaya"; reason: string };
 type EwSettings = { rapid_rise_cm: number; rainfall_waspada_mm: number; rainfall_bahaya_mm: number };
+type SiagaRow = { device_id: string; siaga3_cm: number | null; siaga2_cm: number | null; siaga1_cm: number | null };
+type CalibRow = { device_id: string; normal_water_to_sensor_cm: number; effective_from: string };
 
 export default function KioskPage() {
   const [devices, setDevices] = useState<DevicePublic[]>([]);
@@ -35,6 +37,8 @@ export default function KioskPage() {
     rainfall_waspada_mm: 5,
     rainfall_bahaya_mm: 15,
   });
+  const [siagaLevels, setSiagaLevels] = useState<Record<string, SiagaRow>>({});
+  const [latestCalibration, setLatestCalibration] = useState<Record<string, CalibRow>>({});
   const [now, setNow] = useState(new Date());
   const [mode, setMode] = useState<"grid" | "cycle">("grid");
   const [cycleIndex, setCycleIndex] = useState(0);
@@ -76,6 +80,26 @@ export default function KioskPage() {
         rainfall_bahaya_mm: ewData.rainfall_bahaya_mm,
       });
     }
+
+    const { data: siagaData } = await supabase.from("siaga_levels").select("*");
+    const siagaMap: Record<string, SiagaRow> = {};
+    (siagaData ?? []).forEach((s: SiagaRow) => {
+      siagaMap[s.device_id] = s;
+    });
+    setSiagaLevels(siagaMap);
+
+    const calibMap: Record<string, CalibRow> = {};
+    for (const d of devicesList) {
+      const { data: calib } = await supabase
+        .from("water_level_calibration")
+        .select("device_id, normal_water_to_sensor_cm, effective_from")
+        .eq("device_id", d.id)
+        .order("effective_from", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (calib) calibMap[d.id] = calib as CalibRow;
+    }
+    setLatestCalibration(calibMap);
 
     const readingMap: Record<string, SensorReading> = {};
     const previousMap: Record<string, SensorReading> = {};
@@ -120,8 +144,28 @@ export default function KioskPage() {
     return false;
   }
 
-  // Deteksi peringatan dini banjir: kombinasi kenaikan air cepat (raw distance turun,
-  // karena sensor ultrasonic ngukur jarak ke air -- makin dekat = air makin naik) + curah hujan.
+  // Hitung status Siaga (metode resmi, berbasis tinggi absolut) buat 1 device
+  function getSiagaStatus(deviceId: string): { level: "normal" | "siaga3" | "siaga2" | "siaga1"; heightCm: number | null } {
+    const reading = readings[deviceId];
+    const calib = latestCalibration[deviceId];
+    const siaga = siagaLevels[deviceId];
+
+    if (!reading?.water_level_raw_distance_cm || !calib) {
+      return { level: "normal", heightCm: null };
+    }
+
+    const heightCm = calib.normal_water_to_sensor_cm - reading.water_level_raw_distance_cm;
+
+    if (!siaga) return { level: "normal", heightCm };
+    if (siaga.siaga1_cm !== null && heightCm >= siaga.siaga1_cm) return { level: "siaga1", heightCm };
+    if (siaga.siaga2_cm !== null && heightCm >= siaga.siaga2_cm) return { level: "siaga2", heightCm };
+    if (siaga.siaga3_cm !== null && heightCm >= siaga.siaga3_cm) return { level: "siaga3", heightCm };
+    return { level: "normal", heightCm };
+  }
+
+  // Deteksi peringatan dini banjir: gabungan 2 metode --
+  // 1) Siaga absolut (resmi, berbasis tinggi muka air) -- diutamakan kalau datanya ada
+  // 2) Rate-of-rise + curah hujan (prediktif, pelengkap) -- tetap dicek juga
   function computeEarlyWarnings(): EarlyWarning[] {
     const warnings: EarlyWarning[] = [];
     for (const d of devices) {
@@ -129,12 +173,39 @@ export default function KioskPage() {
       const previous = previousReadings[d.id];
       if (!current) continue;
 
+      // 1. Cek Siaga absolut dulu
+      const siagaStatus = getSiagaStatus(d.id);
+      if (siagaStatus.level === "siaga1") {
+        warnings.push({
+          device: d,
+          level: "bahaya",
+          reason: `SIAGA 1 (Awas) — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari normal`,
+        });
+        continue; // udah paling parah, gak perlu cek yang lain buat device ini
+      }
+      if (siagaStatus.level === "siaga2") {
+        warnings.push({
+          device: d,
+          level: "bahaya",
+          reason: `SIAGA 2 — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari normal`,
+        });
+        continue;
+      }
+      if (siagaStatus.level === "siaga3") {
+        warnings.push({
+          device: d,
+          level: "waspada",
+          reason: `SIAGA 3 (Waspada) — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari normal`,
+        });
+        continue;
+      }
+
+      // 2. Kalau Siaga masih normal (atau belum ada datanya), cek rate-of-rise + hujan
       const rainfall = current.rainfall_mm ?? 0;
       let waterRiseCm = 0;
       if (previous?.water_level_raw_distance_cm != null && current.water_level_raw_distance_cm != null) {
         waterRiseCm = previous.water_level_raw_distance_cm - current.water_level_raw_distance_cm;
       }
-
       const rapidRise = waterRiseCm >= ewSettings.rapid_rise_cm;
 
       if (rapidRise && rainfall >= ewSettings.rainfall_bahaya_mm) {
@@ -237,7 +308,7 @@ export default function KioskPage() {
           <a
             href="/"
             className="glass-pill flex h-9 w-9 items-center justify-center text-ink/50 hover:text-ink"
-            title="Keluar dari Kiosk Mode"
+            title="Keluar dari Monitoring Room"
           >
             <X size={18} />
           </a>
@@ -273,6 +344,7 @@ export default function KioskPage() {
   function renderDeviceCard(d: DevicePublic, big: boolean) {
     const reading = readings[d.id];
     const status = statuses[d.id];
+    const siagaStatus = getSiagaStatus(d.id);
     const hasBreach = SENSOR_FIELDS.some((f) =>
       isBreach(
         f.key,
@@ -281,11 +353,19 @@ export default function KioskPage() {
       ),
     );
 
+    const siagaBadge: Record<string, { label: string; className: string }> = {
+      normal: { label: "Normal", className: "bg-teal/10 text-teal" },
+      siaga3: { label: "Siaga 3", className: "bg-sediment/15 text-sediment" },
+      siaga2: { label: "Siaga 2", className: "bg-alert/15 text-alert" },
+      siaga1: { label: "Siaga 1 - AWAS", className: "bg-alert text-white" },
+    };
+    const badge = siagaBadge[siagaStatus.level];
+
     return (
       <div
         key={d.id}
         className={`glass-card px-6 py-5 ${big ? "mx-auto max-w-3xl" : ""} ${
-          hasBreach ? "ring-4 ring-alert" : ""
+          hasBreach || siagaStatus.level !== "normal" ? "ring-4 ring-alert" : ""
         }`}
       >
         <div className="flex items-center justify-between border-b border-white/50 pb-3">
@@ -297,14 +377,19 @@ export default function KioskPage() {
               {d.device_code}
             </p>
           </div>
-          <span
-            className={`flex items-center gap-2 font-body font-medium ${
-              big ? "text-xl" : "text-base"
-            } ${status?.is_online ? "text-teal" : "text-alert"}`}
-          >
-            {status?.is_online ? <Wifi size={big ? 26 : 20} /> : <WifiOff size={big ? 26 : 20} />}
-            {status?.is_online ? "Online" : "Offline"}
-          </span>
+          <div className="flex flex-col items-end gap-1.5">
+            <span
+              className={`flex items-center gap-2 font-body font-medium ${
+                big ? "text-xl" : "text-base"
+              } ${status?.is_online ? "text-teal" : "text-alert"}`}
+            >
+              {status?.is_online ? <Wifi size={big ? 26 : 20} /> : <WifiOff size={big ? 26 : 20} />}
+              {status?.is_online ? "Online" : "Offline"}
+            </span>
+            <span className={`rounded-full px-3 py-1 font-body text-xs font-medium ${badge.className}`}>
+              {badge.label}
+            </span>
+          </div>
         </div>
 
         <div className={`mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4`}>
