@@ -79,6 +79,18 @@ export default function LiveDashboard({
           setReading(payload.new as SensorReading);
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "device_status_log",
+          filter: `device_id=eq.${selectedDeviceId}`,
+        },
+        (payload) => {
+          setStatus(payload.new as DeviceStatus);
+        },
+      )
       .subscribe();
 
     return () => {
