@@ -52,6 +52,32 @@ export default function StasiunPage() {
       }
       setReadings(readingMap);
     })();
+
+    // Dengerin perubahan status online/offline dan data sensor baru buat SEMUA device,
+    // biar list ini auto-update tanpa refresh manual.
+    const channel = supabase
+      .channel("stasiun-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "device_status_log" },
+        (payload) => {
+          const s = payload.new as DeviceStatus;
+          setStatuses((prev) => ({ ...prev, [s.device_id]: s }));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "sensor_readings" },
+        (payload) => {
+          const r = payload.new as SensorReading;
+          setReadings((prev) => ({ ...prev, [r.device_id]: r }));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
