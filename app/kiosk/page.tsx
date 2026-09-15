@@ -21,11 +21,20 @@ const SENSOR_FIELDS = [
 const REFRESH_MS = 15000;
 const CYCLE_MS = 8000; // ganti device tiap 8 detik di mode Cycle
 
+type EarlyWarning = { device: DevicePublic; level: "waspada" | "bahaya"; reason: string };
+type EwSettings = { rapid_rise_cm: number; rainfall_waspada_mm: number; rainfall_bahaya_mm: number };
+
 export default function KioskPage() {
   const [devices, setDevices] = useState<DevicePublic[]>([]);
   const [readings, setReadings] = useState<Record<string, SensorReading>>({});
+  const [previousReadings, setPreviousReadings] = useState<Record<string, SensorReading>>({});
   const [statuses, setStatuses] = useState<Record<string, DeviceStatus>>({});
   const [thresholds, setThresholds] = useState<Record<string, ThresholdRow>>({});
+  const [ewSettings, setEwSettings] = useState<EwSettings>({
+    rapid_rise_cm: 5,
+    rainfall_waspada_mm: 5,
+    rainfall_bahaya_mm: 15,
+  });
   const [now, setNow] = useState(new Date());
   const [mode, setMode] = useState<"grid" | "cycle">("grid");
   const [cycleIndex, setCycleIndex] = useState(0);
@@ -55,18 +64,33 @@ export default function KioskPage() {
     });
     setThresholds(thresholdMap);
 
+    const { data: ewData } = await supabase
+      .from("early_warning_settings")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle();
+    if (ewData) {
+      setEwSettings({
+        rapid_rise_cm: ewData.rapid_rise_cm,
+        rainfall_waspada_mm: ewData.rainfall_waspada_mm,
+        rainfall_bahaya_mm: ewData.rainfall_bahaya_mm,
+      });
+    }
+
     const readingMap: Record<string, SensorReading> = {};
+    const previousMap: Record<string, SensorReading> = {};
     for (const d of devicesList) {
-      const { data: r } = await supabase
+      const { data: recent } = await supabase
         .from("sensor_readings")
         .select("*")
         .eq("device_id", d.id)
         .order("recorded_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (r) readingMap[d.id] = r as SensorReading;
+        .limit(2);
+      if (recent && recent[0]) readingMap[d.id] = recent[0] as SensorReading;
+      if (recent && recent[1]) previousMap[d.id] = recent[1] as SensorReading;
     }
     setReadings(readingMap);
+    setPreviousReadings(previousMap);
   }
 
   useEffect(() => {
@@ -96,8 +120,92 @@ export default function KioskPage() {
     return false;
   }
 
+  // Deteksi peringatan dini banjir: kombinasi kenaikan air cepat (raw distance turun,
+  // karena sensor ultrasonic ngukur jarak ke air -- makin dekat = air makin naik) + curah hujan.
+  function computeEarlyWarnings(): EarlyWarning[] {
+    const warnings: EarlyWarning[] = [];
+    for (const d of devices) {
+      const current = readings[d.id];
+      const previous = previousReadings[d.id];
+      if (!current) continue;
+
+      const rainfall = current.rainfall_mm ?? 0;
+      let waterRiseCm = 0;
+      if (previous?.water_level_raw_distance_cm != null && current.water_level_raw_distance_cm != null) {
+        waterRiseCm = previous.water_level_raw_distance_cm - current.water_level_raw_distance_cm;
+      }
+
+      const rapidRise = waterRiseCm >= ewSettings.rapid_rise_cm;
+
+      if (rapidRise && rainfall >= ewSettings.rainfall_bahaya_mm) {
+        warnings.push({
+          device: d,
+          level: "bahaya",
+          reason: `Air naik ${waterRiseCm.toFixed(1)} cm + curah hujan ${rainfall} mm`,
+        });
+      } else if (rapidRise || rainfall >= ewSettings.rainfall_waspada_mm) {
+        warnings.push({
+          device: d,
+          level: "waspada",
+          reason: rapidRise
+            ? `Air naik ${waterRiseCm.toFixed(1)} cm sejak update terakhir`
+            : `Curah hujan terdeteksi ${rainfall} mm`,
+        });
+      }
+    }
+    return warnings;
+  }
+
   return (
     <main className="min-h-screen p-6">
+      {/* Banner Peringatan Dini -- paling atas, gak mungkin kelewatan */}
+      {(() => {
+        const warnings = computeEarlyWarnings();
+        const bahaya = warnings.filter((w) => w.level === "bahaya");
+        const waspada = warnings.filter((w) => w.level === "waspada");
+
+        if (bahaya.length > 0) {
+          return (
+            <div className="mb-4 animate-pulse rounded-2xl bg-alert px-6 py-4 text-white shadow-lg">
+              <p className="font-display text-xl font-bold md:text-2xl">
+                🚨 PERINGATAN DINI BANJIR
+              </p>
+              <div className="mt-1 flex flex-col gap-0.5">
+                {bahaya.map((w) => (
+                  <p key={w.device.id} className="font-body text-sm md:text-base">
+                    <span className="font-semibold">{w.device.device_code} — {w.device.name}:</span> {w.reason}
+                  </p>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        if (waspada.length > 0) {
+          return (
+            <div className="mb-4 rounded-2xl bg-sediment px-6 py-4 text-white shadow-lg">
+              <p className="font-display text-lg font-bold">⚠️ Waspada</p>
+              <div className="mt-1 flex flex-col gap-0.5">
+                {waspada.map((w) => (
+                  <p key={w.device.id} className="font-body text-sm">
+                    <span className="font-semibold">{w.device.device_code} — {w.device.name}:</span> {w.reason}
+                  </p>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="mb-4 flex items-center gap-2 rounded-2xl bg-teal/10 px-6 py-3 text-teal">
+            <span className="h-2.5 w-2.5 rounded-full bg-teal" />
+            <p className="font-body text-sm font-medium">
+              Semua stasiun normal, tidak ada indikasi peringatan dini.
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Header ringkas */}
       <div className="glass-card mb-4 flex items-center justify-between px-6 py-4">
         <Logo size={36} />
