@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Halaman /kiosk sengaja TANPA sidebar/topbar -- didesain buat dipajang
+  // di TV/layar besar, jadi harus bersih tanpa navigasi yang gak kepake.
+  const isKiosk = pathname?.startsWith("/kiosk");
+  if (isKiosk) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex gap-4 p-3 md:p-4">
