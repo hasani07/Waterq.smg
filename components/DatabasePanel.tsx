@@ -174,34 +174,36 @@ export default function DatabasePanel({ token }: { token: string }) {
         {backupFeedback && <p className="mt-2 font-body text-xs text-ink/50">{backupFeedback}</p>}
 
         {backups.length > 0 && (
-          <div className="mt-3 flex flex-col gap-1.5">
-            {backups.map((b) => (
-              <div key={b.id} className="flex items-center justify-between font-body text-xs">
-                <span className="text-ink/70">{new Date(b.triggered_at).toLocaleString("id-ID")}</span>
-                <span className="text-ink/40">{b.db_usage_percent ?? "—"}%</span>
-                <span
-                  className={
-                    b.status === "success"
-                      ? "text-teal"
-                      : b.status === "in_progress"
-                        ? "text-sediment"
-                        : "text-alert"
-                  }
-                >
-                  {b.status}
-                </span>
-                {b.file_url ? (
-                  <button
-                    onClick={() => handleDownloadBackup(b.file_url)}
-                    className="text-teal underline hover:opacity-70"
+          <div className="mt-3 max-h-[100px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-1.5">
+              {backups.map((b) => (
+                <div key={b.id} className="flex items-center justify-between font-body text-xs">
+                  <span className="text-ink/70">{new Date(b.triggered_at).toLocaleString("id-ID")}</span>
+                  <span className="text-ink/40">{b.db_usage_percent ?? "—"}%</span>
+                  <span
+                    className={
+                      b.status === "success"
+                        ? "text-teal"
+                        : b.status === "in_progress"
+                          ? "text-sediment"
+                          : "text-alert"
+                    }
                   >
-                    Download
-                  </button>
-                ) : (
-                  <span className="text-ink/20">—</span>
-                )}
-              </div>
-            ))}
+                    {b.status}
+                  </span>
+                  {b.file_url ? (
+                    <button
+                      onClick={() => handleDownloadBackup(b.file_url)}
+                      className="text-teal underline hover:opacity-70"
+                    >
+                      Download
+                    </button>
+                  ) : (
+                    <span className="text-ink/20">—</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
