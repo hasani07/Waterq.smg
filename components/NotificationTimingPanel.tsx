@@ -121,13 +121,13 @@ export default function NotificationTimingPanel({ token }: { token: string }) {
                   onClick={() =>
                     setTiming((prev) => ({ ...prev, [g.enabledKey]: !prev[g.enabledKey] }))
                   }
-                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                  className={`relative h-6 w-10 shrink-0 rounded-full transition-colors ${
                     enabled ? "bg-teal" : "bg-ink/20"
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                      enabled ? "translate-x-5" : "translate-x-0.5"
+                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      enabled ? "translate-x-4" : "translate-x-0"
                     }`}
                   />
                 </button>
