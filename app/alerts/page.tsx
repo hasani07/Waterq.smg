@@ -38,6 +38,23 @@ export default function AlertsPage() {
 
   useEffect(() => {
     loadNotifications();
+
+    // Dengerin notifikasi baru masuk (dari cron/threshold/dll) biar list ini auto-update
+    // tanpa perlu refresh manual -- notifikasi baru langsung nongol di paling atas.
+    const channel = supabase
+      .channel("alerts-page-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
+        (payload) => {
+          setNotifications((prev) => [payload.new as NotificationRow, ...prev].slice(0, 100));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function handleMarkOne(id: number) {
