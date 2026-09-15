@@ -42,6 +42,7 @@ export default function KioskPage() {
   const [now, setNow] = useState(new Date());
   const [mode, setMode] = useState<"grid" | "cycle">("grid");
   const [cycleIndex, setCycleIndex] = useState(0);
+  const [alarmActive, setAlarmActive] = useState(false);
 
   async function loadData() {
     const { data: deviceData } = await supabase
@@ -135,6 +136,44 @@ export default function KioskPage() {
     return () => clearInterval(cycleInterval);
   }, [mode, devices.length]);
 
+  // Screen Wake Lock -- biar layar TV/laptop gak mati/dim sendiri selama halaman ini kebuka.
+  // Browser lama yang gak support fitur ini otomatis "diem-diem aja" (gak error).
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let wakeLock: any = null;
+
+    async function requestWakeLock() {
+      try {
+        if ("wakeLock" in navigator) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          wakeLock = await (navigator as any).wakeLock.request("screen");
+        }
+      } catch {
+        // gagal (misal baterai rendah/gak didukung) -- diemin aja, gak masalah
+      }
+    }
+
+    requestWakeLock();
+
+    // Browser otomatis lepas wake lock kalau tab disembunyiin -- minta lagi begitu keliatan lagi
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") requestWakeLock();
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      wakeLock?.release?.();
+    };
+  }, []);
+
+  // Auto-refresh PENUH tiap 4 jam -- biar gak lag/berat kalau tab kebuka berhari-hari nonstop.
+  useEffect(() => {
+    const AUTO_RELOAD_MS = 4 * 60 * 60 * 1000; // 4 jam
+    const timer = setTimeout(() => window.location.reload(), AUTO_RELOAD_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
   function isBreach(sensorKey: string, thresholdKey: string, value: number | null | undefined) {
     if (value === null || value === undefined) return false;
     const t = thresholds[thresholdKey];
@@ -226,6 +265,46 @@ export default function KioskPage() {
     }
     return warnings;
   }
+
+  // Cek status bahaya tiap kali data sensor ke-update, buat nyalain/matiin alarm
+  useEffect(() => {
+    const warnings = computeEarlyWarnings();
+    setAlarmActive(warnings.some((w) => w.level === "bahaya"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readings, previousReadings, siagaLevels, latestCalibration, ewSettings]);
+
+  // Bunyiin beep berulang selama status masih Bahaya. Catatan: browser modern biasanya
+  // nge-block audio otomatis sebelum ada interaksi apapun di halaman -- klik sekali aja
+  // di layar Monitoring Room pas pertama dibuka buat "unlock" audio-nya.
+  useEffect(() => {
+    if (!alarmActive) return;
+
+    function playBeep() {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioCtx();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.value = 880;
+        gain.gain.value = 0.3;
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start();
+        setTimeout(() => {
+          oscillator.stop();
+          ctx.close();
+        }, 400);
+      } catch {
+        // audio gagal (belum di-unlock/gak didukung) -- diemin aja
+      }
+    }
+
+    playBeep();
+    const interval = setInterval(playBeep, 20000);
+    return () => clearInterval(interval);
+  }, [alarmActive]);
 
   return (
     <main className="min-h-screen p-6">
