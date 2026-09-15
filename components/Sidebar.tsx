@@ -12,12 +12,14 @@ import {
   UploadCloud,
   Settings2,
   SlidersHorizontal,
+  Tv,
   X,
 } from "lucide-react";
 import Logo from "./Logo";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/kiosk", label: "Monitoring Room", icon: Tv },
   { href: "/stasiun", label: "Stasiun", icon: MapPin },
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/alerts", label: "Alerts", icon: Bell },
