@@ -26,7 +26,7 @@ function RiskBadge({ level }: { level: string }) {
     bahaya: "bg-alert text-white",
   };
   return (
-    <span className={`px-3 py-1 font-body text-xs uppercase tracking-wide ${styles[level] ?? "bg-ink/20"}`}>
+    <span className={`rounded-full px-3 py-1 font-body text-xs uppercase tracking-wide ${styles[level] ?? "bg-ink/20"}`}>
       {level}
     </span>
   );
