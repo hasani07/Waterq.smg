@@ -406,8 +406,8 @@ export default function KioskPage() {
                 className={`rounded-xl px-3 py-3 ${breach ? "bg-alert/10" : "bg-ink/5"} ${big ? "py-5" : ""}`}
               >
                 <p
-                  className={`font-body uppercase tracking-wide text-ink/40 ${
-                    big ? "text-xs" : "text-[11px]"
+                  className={`font-body font-semibold uppercase tracking-wide text-ink/75 ${
+                    big ? "text-sm" : "text-xs"
                   }`}
                 >
                   {f.label}
@@ -418,14 +418,14 @@ export default function KioskPage() {
                   } ${breach ? "text-alert" : "text-ink"}`}
                 >
                   {value ?? "—"}
-                  <span className="ml-1 font-body text-xs font-normal text-ink/40">{f.unit}</span>
+                  <span className="ml-1 font-body text-xs font-medium text-ink/55">{f.unit}</span>
                 </p>
               </div>
             );
           })}
         </div>
 
-        <p className="mt-3 font-body text-xs text-ink/40">
+        <p className="mt-3 font-body text-xs text-ink/55">
           Update terakhir:{" "}
           {reading ? new Date(reading.recorded_at).toLocaleString("id-ID") : "belum ada data"}
         </p>
