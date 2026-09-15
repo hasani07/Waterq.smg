@@ -59,6 +59,14 @@ export default async function Home({
               Pantau kondisi sungai di seluruh DAS Semarang secara real-time. Data dari sensor IoT
               untuk lingkungan yang lebih sehat dan berkelanjutan.
             </p>
+            <a
+              href="/kiosk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-pill mt-4 inline-flex items-center gap-2 px-4 py-2 font-body text-xs text-teal hover:opacity-80"
+            >
+              📺 Buka Kiosk Mode (buat TV/layar besar)
+            </a>
           </div>
 
           {/* Logo 3D AtmosX -- versi vector, terinspirasi referensi (bola belah metalik+kaca,
