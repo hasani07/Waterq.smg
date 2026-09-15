@@ -18,7 +18,6 @@ const SENSOR_FIELDS = [
   { key: "battery_percent", label: "Baterai", unit: "%", thresholdKey: "battery" },
 ] as const;
 
-const REFRESH_MS = 15000;
 const CYCLE_MS = 8000; // ganti device tiap 8 detik di mode Cycle
 
 type EarlyWarning = { device: DevicePublic; level: "waspada" | "bahaya"; reason: string };
@@ -120,11 +119,30 @@ export default function KioskPage() {
 
   useEffect(() => {
     loadData();
-    const dataInterval = setInterval(loadData, REFRESH_MS);
+
+    // Realtime: begitu ada data sensor baru, status online/offline berubah, atau
+    // notifikasi baru masuk -- langsung refresh semua data Kiosk instan.
+    const channel = supabase
+      .channel("kiosk-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "sensor_readings" },
+        () => loadData(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "device_status_log" },
+        () => loadData(),
+      )
+      .subscribe();
+
+    // Cadangan aja (jaring pengaman kalau koneksi realtime putus), interval diperpanjang.
+    const dataInterval = setInterval(loadData, 60000);
     const clockInterval = setInterval(() => setNow(new Date()), 1000);
     return () => {
       clearInterval(dataInterval);
       clearInterval(clockInterval);
+      supabase.removeChannel(channel);
     };
   }, []);
 
