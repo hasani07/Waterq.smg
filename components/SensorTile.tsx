@@ -44,7 +44,7 @@ export default function SensorTile({
         >
           <Icon size={18} color={meta.accent} strokeWidth={2.2} />
         </span>
-        <span className="font-body text-[11px] uppercase tracking-wide text-ink/40">
+        <span className="font-body text-[11px] font-semibold uppercase tracking-wide text-ink/70">
           {meta.label}
         </span>
       </div>
@@ -52,7 +52,7 @@ export default function SensorTile({
         <span className="font-display text-2xl font-bold text-ink tabular-nums">
           {value !== null && value !== undefined ? value : "—"}
         </span>
-        {unit && <span className="font-body text-xs text-ink/40">{unit}</span>}
+        {unit && <span className="font-body text-xs text-ink/55">{unit}</span>}
       </div>
     </div>
   );
