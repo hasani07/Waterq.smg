@@ -6,6 +6,7 @@ import ThresholdPanel from "@/components/ThresholdPanel";
 import EarlyWarningPanel from "@/components/EarlyWarningPanel";
 import SiagaLevelsPanel from "@/components/SiagaLevelsPanel";
 import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
+import NotificationTimingPanel from "@/components/NotificationTimingPanel";
 import IntervalPanel from "@/components/IntervalPanel";
 import WifiPanel from "@/components/WifiPanel";
 import OtaPanel from "@/components/OtaPanel";
@@ -31,6 +32,7 @@ export default function SettingsPage() {
             <EarlyWarningPanel token={token} />
             <SiagaLevelsPanel token={token} />
             <NotificationPreferencesPanel token={token} />
+            <NotificationTimingPanel token={token} />
             <IntervalPanel token={token} />
             <WifiPanel token={token} />
             <OtaPanel token={token} />
