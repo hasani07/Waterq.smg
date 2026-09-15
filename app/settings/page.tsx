@@ -4,6 +4,7 @@ import PinGate from "@/components/PinGate";
 import DeviceInfoPanel from "@/components/DeviceInfoPanel";
 import ThresholdPanel from "@/components/ThresholdPanel";
 import EarlyWarningPanel from "@/components/EarlyWarningPanel";
+import SiagaLevelsPanel from "@/components/SiagaLevelsPanel";
 import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
 import IntervalPanel from "@/components/IntervalPanel";
 import WifiPanel from "@/components/WifiPanel";
@@ -28,6 +29,7 @@ export default function SettingsPage() {
             <DeviceInfoPanel token={token} />
             <ThresholdPanel token={token} />
             <EarlyWarningPanel token={token} />
+            <SiagaLevelsPanel token={token} />
             <NotificationPreferencesPanel token={token} />
             <IntervalPanel token={token} />
             <WifiPanel token={token} />
