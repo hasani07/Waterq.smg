@@ -60,7 +60,7 @@ export default function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
   );
 
   return (
-    <div className="glass-card mb-6 flex items-center gap-3 px-4 py-3 md:gap-4 md:px-5">
+    <div className="glass-card relative z-30 mb-6 flex items-center gap-3 px-4 py-3 md:gap-4 md:px-5">
       <button
         onClick={onMenuClick}
         className="glass-pill flex h-9 w-9 shrink-0 items-center justify-center text-ink/70 lg:hidden"
