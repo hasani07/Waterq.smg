@@ -149,10 +149,27 @@ export default function SensorHistoryChart({
 
     fetchChartData(true); // fetch pertama, tampilkan loading
 
-    // Auto-refresh tiap 30 detik biar grafik "24 Jam Terakhir" & "7 Hari" beneran
-    // nyampe ke data ter-update, bukan cuma snapshot pas terakhir klik filter.
-    const intervalId = setInterval(() => fetchChartData(false), 30000);
-    return () => clearInterval(intervalId);
+    // Realtime: begitu ada data sensor baru masuk buat salah satu device aktif, langsung
+    // refresh grafiknya instan -- gak nunggu interval.
+    const channel = supabase
+      .channel(`chart-realtime-${activeDeviceIds.join("-")}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "sensor_readings" },
+        (payload) => {
+          const deviceId = (payload.new as { device_id: string }).device_id;
+          if (activeDeviceIds.includes(deviceId)) fetchChartData(false);
+        },
+      )
+      .subscribe();
+
+    // Cadangan (jaga-jaga kalau koneksi realtime putus) -- interval diperpanjang jadi 2 menit
+    // karena sekarang push realtime yang jadi jalur utama, ini cuma jaring pengaman.
+    const intervalId = setInterval(() => fetchChartData(false), 120000);
+    return () => {
+      clearInterval(intervalId);
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sensorKey, range, customFrom, customTo, primaryDeviceId, compareIds.join(",")]);
 
@@ -167,7 +184,7 @@ export default function SensorHistoryChart({
         <div>
           <p className="font-display text-lg font-bold text-ink">Grafik Historis</p>
           <p className="font-body text-xs text-ink/50">
-            Riwayat pembacaan sensor · auto-refresh tiap 30 detik
+            Riwayat pembacaan sensor · update realtime
           </p>
         </div>
 
@@ -306,6 +323,7 @@ export default function SensorHistoryChart({
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 0 }}
                   connectNulls
+                  isAnimationActive={false}
                 />
               ))}
             </AreaChart>
