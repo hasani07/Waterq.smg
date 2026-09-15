@@ -24,6 +24,7 @@ const TYPE_META: Record<string, { icon: typeof AlertTriangle; label: string; col
 
 export default function AlertsPage() {
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
+  const [deviceMap, setDeviceMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   async function loadNotifications() {
@@ -36,8 +37,18 @@ export default function AlertsPage() {
     setLoading(false);
   }
 
+  async function loadDeviceMap() {
+    const { data } = await supabase.from("devices_public").select("id, device_code, name");
+    const map: Record<string, string> = {};
+    (data ?? []).forEach((d: { id: string; device_code: string; name: string }) => {
+      map[d.id] = `${d.device_code} — ${d.name}`;
+    });
+    setDeviceMap(map);
+  }
+
   useEffect(() => {
     loadNotifications();
+    loadDeviceMap();
 
     // Dengerin notifikasi baru masuk (dari cron/threshold/dll) biar list ini auto-update
     // tanpa perlu refresh manual -- notifikasi baru langsung nongol di paling atas.
@@ -122,10 +133,15 @@ export default function AlertsPage() {
                     <Icon size={15} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-body text-xs font-medium uppercase tracking-wide text-ink/40">
                         {meta.label}
                       </span>
+                      {n.device_id && deviceMap[n.device_id] && (
+                        <span className="glass-pill px-2 py-0.5 font-body text-[10px] text-teal">
+                          {deviceMap[n.device_id]}
+                        </span>
+                      )}
                       {!n.is_read && (
                         <span className="h-1.5 w-1.5 rounded-full bg-alert" title="Belum dibaca" />
                       )}
