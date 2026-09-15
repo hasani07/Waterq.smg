@@ -143,7 +143,7 @@ export default function ThresholdPanel({ token }: { token: string }) {
                 <button
                   onClick={() => handleSave(s.key)}
                   disabled={savingKey === s.key}
-                  className="border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
+                  className="rounded-full border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
                 >
                   {savingKey === s.key ? "Menyimpan..." : "Simpan"}
                 </button>

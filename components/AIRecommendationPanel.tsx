@@ -67,7 +67,7 @@ function AIRecommendationContent({ token, deviceId }: { token: string; deviceId:
           <button
             key={opt.key}
             onClick={() => setRange(opt.key)}
-            className={`border px-3 py-1.5 font-body text-xs transition-colors ${
+            className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
               range === opt.key
                 ? "border-teal bg-teal text-white"
                 : "border-line bg-white text-ink/70 hover:border-teal"
@@ -86,7 +86,7 @@ function AIRecommendationContent({ token, deviceId }: { token: string; deviceId:
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="ml-1 border border-line px-2 py-1 font-body text-xs"
+              className="rounded-lg ml-1 border border-line px-2 py-1 font-body text-xs"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -95,7 +95,7 @@ function AIRecommendationContent({ token, deviceId }: { token: string; deviceId:
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="ml-1 border border-line px-2 py-1 font-body text-xs"
+              className="rounded-lg ml-1 border border-line px-2 py-1 font-body text-xs"
             />
           </label>
         </div>
@@ -104,7 +104,7 @@ function AIRecommendationContent({ token, deviceId }: { token: string; deviceId:
       <button
         onClick={handleGetData}
         disabled={loading || !deviceId}
-        className="mt-4 bg-teal px-5 py-2 font-body text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="rounded-full mt-4 bg-teal px-5 py-2 font-body text-sm text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {loading ? "Menganalisis..." : "Get Data"}
       </button>

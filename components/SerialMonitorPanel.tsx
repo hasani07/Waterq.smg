@@ -87,7 +87,7 @@ export default function SerialMonitorPanel({ token }: { token: string }) {
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="border border-line bg-white px-3 py-2 font-body text-sm text-ink"
+            className="rounded-lg border border-line bg-white px-3 py-2 font-body text-sm text-ink"
           >
             {devices.map((d) => (
               <option key={d.id} value={d.id}>

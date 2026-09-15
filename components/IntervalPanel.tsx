@@ -66,7 +66,7 @@ export default function IntervalPanel({ token }: { token: string }) {
         <select
           value={selectedId}
           onChange={(e) => handleSelectDevice(e.target.value)}
-          className="w-full border border-line bg-white px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg w-full border border-line bg-white px-3 py-2 font-body text-sm text-ink"
         >
           {devices.map((d) => (
             <option key={d.id} value={d.id}>
@@ -98,7 +98,7 @@ export default function IntervalPanel({ token }: { token: string }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
+          className="rounded-full border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
         >
           {saving ? "Menyimpan..." : "Simpan"}
         </button>

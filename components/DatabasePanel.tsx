@@ -166,7 +166,7 @@ export default function DatabasePanel({ token }: { token: string }) {
           <button
             onClick={handleBackupNow}
             disabled={backingUp}
-            className="border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
+            className="rounded-full border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
           >
             {backingUp ? "Memproses..." : "Backup Sekarang"}
           </button>
@@ -214,7 +214,7 @@ export default function DatabasePanel({ token }: { token: string }) {
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="border border-line bg-white px-3 py-2 font-body text-sm text-ink"
+            className="rounded-lg border border-line bg-white px-3 py-2 font-body text-sm text-ink"
           >
             {devices.map((d) => (
               <option key={d.id} value={d.id}>
@@ -229,7 +229,7 @@ export default function DatabasePanel({ token }: { token: string }) {
                 type="date"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+                className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
               />
             </label>
             <label className="flex-1 font-body text-xs text-ink/60">
@@ -238,7 +238,7 @@ export default function DatabasePanel({ token }: { token: string }) {
                 type="date"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+                className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
               />
             </label>
           </div>
@@ -247,7 +247,7 @@ export default function DatabasePanel({ token }: { token: string }) {
           <button
             onClick={handleDownload}
             disabled={downloading || devices.length === 0}
-            className="bg-teal px-4 py-2 font-body text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="rounded-full bg-teal px-4 py-2 font-body text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {downloading ? "Menyiapkan..." : "Download CSV"}
           </button>

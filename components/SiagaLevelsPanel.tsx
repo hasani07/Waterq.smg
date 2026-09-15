@@ -99,7 +99,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
         <select
           value={selectedId}
           onChange={(e) => setSelectedId(e.target.value)}
-          className="w-full border border-line bg-white px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg w-full border border-line bg-white px-3 py-2 font-body text-sm text-ink"
         >
           {devices.map((d) => (
             <option key={d.id} value={d.id}>
@@ -126,7 +126,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
             placeholder="cm dari normal"
             value={siaga3}
             onChange={(e) => setSiaga3(e.target.value)}
-            className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+            className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
           />
         </label>
         <label className="font-body text-xs text-ink/60">
@@ -136,7 +136,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
             placeholder="cm dari normal"
             value={siaga2}
             onChange={(e) => setSiaga2(e.target.value)}
-            className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+            className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
           />
         </label>
         <label className="font-body text-xs text-ink/60">
@@ -146,7 +146,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
             placeholder="cm dari normal"
             value={siaga1}
             onChange={(e) => setSiaga1(e.target.value)}
-            className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+            className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
           />
         </label>
       </div>
@@ -155,7 +155,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
+          className="rounded-full border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
         >
           {saving ? "Menyimpan..." : "Simpan"}
         </button>

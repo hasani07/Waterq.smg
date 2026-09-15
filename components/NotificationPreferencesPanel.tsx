@@ -66,7 +66,7 @@ export default function NotificationPreferencesPanel({ token }: { token: string 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
+          className="rounded-full border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
         >
           {saving ? "Menyimpan..." : "Simpan"}
         </button>

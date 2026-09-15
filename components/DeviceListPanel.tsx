@@ -106,14 +106,14 @@ export default function DeviceListPanel({ token }: { token: string }) {
           placeholder="Kode device (mis. WQ-05)"
           value={form.device_code}
           onChange={(e) => setForm((f) => ({ ...f, device_code: e.target.value }))}
-          className="border border-line px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg border border-line px-3 py-2 font-body text-sm text-ink"
         />
         <input
           type="text"
           placeholder="Nama lokasi"
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          className="border border-line px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg border border-line px-3 py-2 font-body text-sm text-ink"
         />
         <input
           type="number"
@@ -121,7 +121,7 @@ export default function DeviceListPanel({ token }: { token: string }) {
           placeholder="Latitude (opsional)"
           value={form.latitude}
           onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
-          className="border border-line px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg border border-line px-3 py-2 font-body text-sm text-ink"
         />
         <input
           type="number"
@@ -129,13 +129,13 @@ export default function DeviceListPanel({ token }: { token: string }) {
           placeholder="Longitude (opsional)"
           value={form.longitude}
           onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
-          className="border border-line px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg border border-line px-3 py-2 font-body text-sm text-ink"
         />
         <div className="flex items-center gap-3 md:col-span-2">
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="flex items-center gap-2 bg-teal px-4 py-2 font-body text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="rounded-full flex items-center gap-2 bg-teal px-4 py-2 font-body text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             <Plus size={14} /> {creating ? "Menambahkan..." : "Tambah Device Baru"}
           </button>

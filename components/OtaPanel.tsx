@@ -103,7 +103,7 @@ export default function OtaPanel({ token }: { token: string }) {
         <select
           value={selectedId}
           onChange={(e) => setSelectedId(e.target.value)}
-          className="border border-line bg-white px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg border border-line bg-white px-3 py-2 font-body text-sm text-ink"
         >
           {devices.map((d) => (
             <option key={d.id} value={d.id}>
@@ -116,13 +116,13 @@ export default function OtaPanel({ token }: { token: string }) {
           placeholder="Versi firmware (mis. 1.2.0)"
           value={version}
           onChange={(e) => setVersion(e.target.value)}
-          className="border border-line px-3 py-2 font-body text-sm"
+          className="rounded-lg border border-line px-3 py-2 font-body text-sm"
         />
         <input
           ref={fileInputRef}
           type="file"
           accept=".bin"
-          className="border border-line px-3 py-2 font-body text-sm"
+          className="rounded-lg border border-line px-3 py-2 font-body text-sm"
         />
       </div>
 
@@ -130,7 +130,7 @@ export default function OtaPanel({ token }: { token: string }) {
         <button
           onClick={handleUpload}
           disabled={uploading}
-          className="border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
+          className="rounded-full border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
         >
           {uploading ? "Mengunggah..." : "Upload"}
         </button>

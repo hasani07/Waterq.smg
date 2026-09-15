@@ -90,7 +90,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
         <select
           value={selectedId}
           onChange={(e) => setSelectedId(e.target.value)}
-          className="w-full border border-line bg-white px-3 py-2 font-body text-sm text-ink"
+          className="rounded-lg w-full border border-line bg-white px-3 py-2 font-body text-sm text-ink"
         >
           {devices.map((d) => (
             <option key={d.id} value={d.id}>
@@ -110,7 +110,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
               type="text"
               value={form.name ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+              className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -120,7 +120,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
               placeholder="Telkomsel / XL / dst"
               value={form.sim_provider ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, sim_provider: e.target.value }))}
-              className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+              className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -129,7 +129,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
               type="text"
               value={form.sim_number ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, sim_number: e.target.value }))}
-              className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+              className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -138,7 +138,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
               type="date"
               value={form.pulsa_last_topup_date ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, pulsa_last_topup_date: e.target.value }))}
-              className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+              className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -148,7 +148,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
               step="0.000001"
               value={form.latitude ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, latitude: Number(e.target.value) }))}
-              className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+              className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
             />
           </label>
           <label className="font-body text-xs text-ink/60">
@@ -158,7 +158,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
               step="0.000001"
               value={form.longitude ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, longitude: Number(e.target.value) }))}
-              className="mt-1 w-full border border-line px-3 py-2 font-body text-sm"
+              className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
             />
           </label>
         </div>
@@ -168,7 +168,7 @@ export default function DeviceInfoPanel({ token }: { token: string }) {
         <button
           onClick={handleSave}
           disabled={saving || loading}
-          className="border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
+          className="rounded-full border border-teal px-4 py-1.5 font-body text-xs text-teal transition-colors hover:bg-teal hover:text-white disabled:opacity-50"
         >
           {saving ? "Menyimpan..." : "Simpan"}
         </button>
