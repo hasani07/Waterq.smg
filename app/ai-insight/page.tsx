@@ -76,24 +76,26 @@ export default function AIInsightPage() {
             Belum ada riwayat untuk device ini.
           </p>
         ) : (
-          <div className="mt-4 flex flex-col gap-3">
-            {history.map((h) => (
-              <div key={h.id} className="glass-card-sm px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`rounded-full px-3 py-1 font-body text-xs uppercase ${
-                      BADGE_COLOR[h.risk_level] ?? "bg-ink/10 text-ink/60"
-                    }`}
-                  >
-                    {h.risk_level}
-                  </span>
-                  <span className="font-body text-xs text-ink/40">
-                    {new Date(h.created_at).toLocaleString("id-ID")}
-                  </span>
+          <div className="mt-4 max-h-[320px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-3">
+              {history.map((h) => (
+                <div key={h.id} className="glass-card-sm px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`rounded-full px-3 py-1 font-body text-xs uppercase ${
+                        BADGE_COLOR[h.risk_level] ?? "bg-ink/10 text-ink/60"
+                      }`}
+                    >
+                      {h.risk_level}
+                    </span>
+                    <span className="font-body text-xs text-ink/40">
+                      {new Date(h.created_at).toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                  <p className="mt-2 font-body text-sm text-ink/80">{h.summary}</p>
                 </div>
-                <p className="mt-2 font-body text-sm text-ink/80">{h.summary}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>
