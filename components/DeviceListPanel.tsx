@@ -173,7 +173,7 @@ export default function DeviceListPanel({ token }: { token: string }) {
                 <button
                   onClick={() => handleDelete(d.id)}
                   disabled={deletingId === d.id}
-                  className="bg-alert px-3 py-1.5 font-body text-xs text-white hover:opacity-90"
+                  className="rounded-full bg-alert px-3 py-1.5 font-body text-xs text-white hover:opacity-90"
                 >
                   {deletingId === d.id ? "Menghapus..." : "Ya, Hapus"}
                 </button>
