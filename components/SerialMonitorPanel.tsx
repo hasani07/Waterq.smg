@@ -98,7 +98,7 @@ export default function SerialMonitorPanel({ token }: { token: string }) {
           <button
             onClick={handleToggle}
             disabled={toggling}
-            className={`px-4 py-2 font-body text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50 ${
+            className={`rounded-full px-4 py-2 font-body text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50 ${
               running ? "bg-alert" : "bg-teal"
             }`}
           >
@@ -112,7 +112,7 @@ export default function SerialMonitorPanel({ token }: { token: string }) {
 
       <div
         ref={scrollRef}
-        className="mt-4 h-72 overflow-y-auto bg-ink px-4 py-3 font-mono text-xs text-bg"
+        className="mt-4 h-72 overflow-y-auto rounded-xl bg-ink px-4 py-3 font-mono text-xs text-bg"
       >
         {logs.length === 0 ? (
           <p className="text-bg/40">Belum ada log.</p>
