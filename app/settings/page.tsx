@@ -3,6 +3,7 @@
 import PinGate from "@/components/PinGate";
 import DeviceInfoPanel from "@/components/DeviceInfoPanel";
 import ThresholdPanel from "@/components/ThresholdPanel";
+import EarlyWarningPanel from "@/components/EarlyWarningPanel";
 import NotificationPreferencesPanel from "@/components/NotificationPreferencesPanel";
 import IntervalPanel from "@/components/IntervalPanel";
 import WifiPanel from "@/components/WifiPanel";
@@ -26,6 +27,7 @@ export default function SettingsPage() {
           <div className="flex flex-col gap-6">
             <DeviceInfoPanel token={token} />
             <ThresholdPanel token={token} />
+            <EarlyWarningPanel token={token} />
             <NotificationPreferencesPanel token={token} />
             <IntervalPanel token={token} />
             <WifiPanel token={token} />
