@@ -65,7 +65,7 @@ export default async function Home({
               rel="noopener noreferrer"
               className="glass-pill mt-4 inline-flex items-center gap-2 px-4 py-2 font-body text-xs text-teal hover:opacity-80"
             >
-              📺 Buka Kiosk Mode (buat TV/layar besar)
+              📺 Buka Monitoring Room (buat TV/layar besar)
             </a>
           </div>
 
