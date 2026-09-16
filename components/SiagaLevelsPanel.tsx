@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { supabase, DevicePublic } from "@/lib/supabase";
 import { callProtectedFunction } from "@/lib/pinSession";
 
-type CalibRow = { normal_water_to_sensor_cm: number; effective_from: string };
+type CalibRow = {
+  normal_water_to_sensor_cm: number;
+  riverbed_to_normal_water_cm: number | null;
+  effective_from: string;
+};
 
 export default function SiagaLevelsPanel({ token }: { token: string }) {
   const [devices, setDevices] = useState<DevicePublic[]>([]);
@@ -47,14 +51,16 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
 
       const { data: calib } = await supabase
         .from("water_level_calibration")
-        .select("normal_water_to_sensor_cm, effective_from")
+        .select("normal_water_to_sensor_cm, riverbed_to_normal_water_cm, effective_from")
         .eq("device_id", selectedId)
         .order("effective_from", { ascending: false })
         .limit(1)
         .maybeSingle<CalibRow>();
 
+      // Tinggi air DARI DASAR SUNGAI = jarak dasar->normal + (jarak normal->sensor - jarak sensor->air sekarang)
       if (reading?.water_level_raw_distance_cm != null && calib?.normal_water_to_sensor_cm != null) {
-        setCurrentLevel(calib.normal_water_to_sensor_cm - reading.water_level_raw_distance_cm);
+        const heightAboveNormal = calib.normal_water_to_sensor_cm - reading.water_level_raw_distance_cm;
+        setCurrentLevel((calib.riverbed_to_normal_water_cm ?? 0) + heightAboveNormal);
       } else {
         setCurrentLevel(null);
       }
@@ -125,8 +131,9 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
       <p className="font-display text-lg font-bold text-ink">Level Siaga Banjir (per Stasiun)</p>
       <p className="mt-1 font-body text-xs text-ink/50">
         Metode resmi BBWS/BMKG — batas TINGGI MUKA AIR (bukan kecepatan naik), diukur dalam cm{" "}
-        <b>di atas muka air normal</b>. Angka ini beda-beda tiap lokasi, tentukan berdasarkan
-        riwayat banjir/survei lapangan di titik itu.
+        <b>dari dasar sungai</b>. Angka ini beda-beda tiap lokasi, tentukan berdasarkan
+        riwayat banjir/survei lapangan di titik itu. Butuh kalibrasi lengkap (termasuk "Tinggi
+        dasar sungai ke muka air normal") di panel Kalibrasi Sensor biar perhitungannya akurat.
       </p>
 
       <div className="mt-5">
@@ -145,7 +152,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
 
       <div className="mt-3 rounded-xl bg-teal/10 px-4 py-3">
         <p className="font-body text-xs text-ink/60">
-          Tinggi air sekarang (dari normal):{" "}
+          Tinggi air sekarang (dari dasar sungai):{" "}
           <span className="font-display font-bold text-teal">
             {currentLevel !== null ? `${currentLevel.toFixed(1)} cm` : "belum ada data/kalibrasi"}
           </span>
@@ -157,7 +164,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
           Siaga 3 (Waspada)
           <input
             type="number"
-            placeholder="cm dari normal"
+            placeholder="cm dari dasar sungai"
             value={siaga3}
             onChange={(e) => setSiaga3(e.target.value)}
             className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
@@ -167,7 +174,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
           Siaga 2
           <input
             type="number"
-            placeholder="cm dari normal"
+            placeholder="cm dari dasar sungai"
             value={siaga2}
             onChange={(e) => setSiaga2(e.target.value)}
             className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
@@ -177,7 +184,7 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
           Siaga 1 (Awas)
           <input
             type="number"
-            placeholder="cm dari normal"
+            placeholder="cm dari dasar sungai"
             value={siaga1}
             onChange={(e) => setSiaga1(e.target.value)}
             className="rounded-lg mt-1 w-full border border-line px-3 py-2 font-body text-sm"
