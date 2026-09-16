@@ -159,7 +159,7 @@ export default function ThresholdPanel({ token }: { token: string }) {
       {history.length > 0 && (
         <div className="mt-6 border-t border-line pt-4">
           <p className="font-body text-xs text-ink/50">Riwayat 20 perubahan terakhir:</p>
-          <div className="mt-2 max-h-[150px] overflow-y-auto pr-1">
+          <div className="mt-2 max-h-[90px] overflow-y-auto pr-1">
             <div className="flex flex-col gap-1.5">
               {history.map((h) => (
                 <div key={h.id} className="flex items-center justify-between font-body text-xs">
