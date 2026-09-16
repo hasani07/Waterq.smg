@@ -26,7 +26,8 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
 
   useEffect(() => {
     if (!selectedId) return;
-    (async () => {
+
+    async function loadSiagaData() {
       const { data: siagaData } = await supabase
         .from("siaga_levels")
         .select("*")
@@ -57,7 +58,40 @@ export default function SiagaLevelsPanel({ token }: { token: string }) {
       } else {
         setCurrentLevel(null);
       }
-    })();
+    }
+
+    loadSiagaData();
+
+    // Dengerin kalibrasi baru ATAU bacaan sensor baru buat device ini -- begitu ada
+    // perubahan (misal abis Simpan di panel Kalibrasi), "Tinggi air sekarang" auto-update
+    // tanpa perlu refresh halaman.
+    const channel = supabase
+      .channel(`siaga-levels-${selectedId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "water_level_calibration",
+          filter: `device_id=eq.${selectedId}`,
+        },
+        () => loadSiagaData(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "sensor_readings",
+          filter: `device_id=eq.${selectedId}`,
+        },
+        () => loadSiagaData(),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [selectedId]);
 
   async function handleSave() {
