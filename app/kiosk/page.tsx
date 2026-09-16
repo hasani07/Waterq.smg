@@ -23,7 +23,12 @@ const CYCLE_MS = 8000; // ganti device tiap 8 detik di mode Cycle
 type EarlyWarning = { device: DevicePublic; level: "waspada" | "bahaya"; reason: string };
 type EwSettings = { rapid_rise_cm: number; rainfall_waspada_mm: number; rainfall_bahaya_mm: number };
 type SiagaRow = { device_id: string; siaga3_cm: number | null; siaga2_cm: number | null; siaga1_cm: number | null };
-type CalibRow = { device_id: string; normal_water_to_sensor_cm: number; effective_from: string };
+type CalibRow = {
+  device_id: string;
+  normal_water_to_sensor_cm: number;
+  riverbed_to_normal_water_cm: number | null;
+  effective_from: string;
+};
 
 export default function KioskPage() {
   const [devices, setDevices] = useState<DevicePublic[]>([]);
@@ -92,7 +97,7 @@ export default function KioskPage() {
     for (const d of devicesList) {
       const { data: calib } = await supabase
         .from("water_level_calibration")
-        .select("device_id, normal_water_to_sensor_cm, effective_from")
+        .select("device_id, normal_water_to_sensor_cm, riverbed_to_normal_water_cm, effective_from")
         .eq("device_id", d.id)
         .order("effective_from", { ascending: false })
         .limit(1)
@@ -211,7 +216,9 @@ export default function KioskPage() {
       return { level: "normal", heightCm: null };
     }
 
-    const heightCm = calib.normal_water_to_sensor_cm - reading.water_level_raw_distance_cm;
+    // Tinggi air DARI DASAR SUNGAI = jarak dasar->normal + (jarak normal->sensor - jarak sensor->air sekarang)
+    const heightAboveNormal = calib.normal_water_to_sensor_cm - reading.water_level_raw_distance_cm;
+    const heightCm = (calib.riverbed_to_normal_water_cm ?? 0) + heightAboveNormal;
 
     if (!siaga) return { level: "normal", heightCm };
     if (siaga.siaga1_cm !== null && heightCm >= siaga.siaga1_cm) return { level: "siaga1", heightCm };
@@ -236,7 +243,7 @@ export default function KioskPage() {
         warnings.push({
           device: d,
           level: "bahaya",
-          reason: `SIAGA 1 (Awas) — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari normal`,
+          reason: `SIAGA 1 (Awas) — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari dasar sungai`,
         });
         continue; // udah paling parah, gak perlu cek yang lain buat device ini
       }
@@ -244,7 +251,7 @@ export default function KioskPage() {
         warnings.push({
           device: d,
           level: "bahaya",
-          reason: `SIAGA 2 — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari normal`,
+          reason: `SIAGA 2 — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari dasar sungai`,
         });
         continue;
       }
@@ -252,7 +259,7 @@ export default function KioskPage() {
         warnings.push({
           device: d,
           level: "waspada",
-          reason: `SIAGA 3 (Waspada) — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari normal`,
+          reason: `SIAGA 3 (Waspada) — tinggi air ${siagaStatus.heightCm?.toFixed(1)} cm dari dasar sungai`,
         });
         continue;
       }
